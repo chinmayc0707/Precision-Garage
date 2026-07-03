@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Cancel Booking{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width:600px;margin:var(--sp-xl) auto;">
+    <div class="card">
+        <h2 class="title-lg mb-sm">CANCEL BOOKING</h2>
+        <p class="body-md mb-lg">Provide a reason for cancelling this confirmed booking.</p>
+
+        <div class="m-stripe m-stripe-thin mb-lg"><span></span><span></span><span></span></div>
+
+        <div class="mb-lg" style="padding:var(--sp-sm);background:var(--surface-soft);border:1px solid var(--hairline);">
+            <p class="title-sm">{{ booking.service_type.replace('_', ' ').title() }}</p>
+            <p class="caption">Vehicle: {{ booking.vehicle.make }} {{ booking.vehicle.model }} ({{ booking.vehicle.registration_no }})</p>
+            <p class="caption mt-xs">Date: {{ booking.preferred_date.strftime('%B %d, %Y') }}</p>
+        </div>
+
+        <form method="POST">
+            {{ form.hidden_tag() }}
+
+            <div class="form-group">
+                <label class="form-label" for="cancellation_message">{{ form.cancellation_message.label.text }}</label>
+                {{ form.cancellation_message(class="form-input", rows="4", placeholder="Explain why the booking is being cancelled...") }}
+                {% for error in form.cancellation_message.errors %}
+                <span class="text-danger caption">{{ error }}</span>
+                {% endfor %}
+            </div>
+
+            <div class="flex gap-sm mt-lg">
+                <button type="submit" class="btn btn-filled btn-danger">CONFIRM CANCELLATION</button>
+                <a href="{{ url_for('mechanic_dashboard') }}" class="btn btn-primary">BACK TO DASHBOARD</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

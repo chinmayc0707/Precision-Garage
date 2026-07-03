@@ -77,6 +77,9 @@ class UpdateKmsForm(FlaskForm):
     current_kms = IntegerField("Current Kilometers", validators=[DataRequired(), NumberRange(min=0)])
 
 
+class MechanicCancelForm(FlaskForm):
+    cancellation_message = TextAreaField("Cancellation Message", validators=[DataRequired(), Length(max=1000)])
+
 class CompleteServiceForm(FlaskForm):
     kms_at_service = IntegerField("KMs at Service", validators=[DataRequired(), NumberRange(min=0)])
     cost = FloatField("Service Cost", validators=[Optional(), NumberRange(min=0)])

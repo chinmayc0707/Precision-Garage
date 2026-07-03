@@ -6,7 +6,7 @@ from models import db, User, Vehicle, Service, Complaint, Booking, Feedback, Job
 from forms import (
     LoginForm, RegisterForm, VehicleForm, BookingForm,
     ComplaintForm, FeedbackForm, NewsletterForm, UpdateKmsForm,
-    CompleteServiceForm
+    CompleteServiceForm, MechanicCancelForm
 )
 
 app = Flask(__name__)
@@ -492,11 +492,22 @@ def confirm_booking(booking_id):
     return redirect(url_for("mechanic_dashboard"))
 
 
-@app.route("/mechanic/booking/<int:booking_id>/cancel")
+@app.route("/mechanic/booking/<int:booking_id>/cancel", methods=["GET", "POST"])
 @login_required
 @mechanic_required
 def cancel_booking(booking_id):
     booking = Booking.query.get_or_404(booking_id)
+
+    if booking.status == "confirmed":
+        form = MechanicCancelForm()
+        if form.validate_on_submit():
+            booking.status = "cancelled"
+            booking.cancellation_message = form.cancellation_message.data
+            db.session.commit()
+            flash(f"Booking for {booking.vehicle.make} {booking.vehicle.model} cancelled with message.", "info")
+            return redirect(url_for("mechanic_dashboard"))
+        return render_template("mechanic_cancel.html", form=form, booking=booking)
+
     booking.status = "cancelled"
     db.session.commit()
     flash(f"Booking for {booking.vehicle.make} {booking.vehicle.model} cancelled.", "info")

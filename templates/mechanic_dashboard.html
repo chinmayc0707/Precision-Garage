@@ -62,6 +62,12 @@
                                     <p class="body-sm" style="color:var(--body-strong);">{{ booking.notes }}</p>
                                 </div>
                                 {% endif %}
+                                {% if booking.cancellation_message %}
+                                <div class="mt-md" style="padding:var(--sp-sm);background:var(--surface-card);border:1px solid var(--hairline-strong);border-left:3px solid var(--m-red);">
+                                    <p class="caption" style="color:var(--muted);">CANCELLATION REASON:</p>
+                                    <p class="body-sm" style="color:var(--body-strong);">{{ booking.cancellation_message }}</p>
+                                </div>
+                                {% endif %}
                             </div>
 
                             <!-- Actions -->
