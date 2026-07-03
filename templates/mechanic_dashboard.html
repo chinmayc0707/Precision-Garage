@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Mechanic Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="container">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <div>
+                <p class="label-uppercase" style="color:var(--m-red);">Staff Access</p>
+                <h1 class="display-md">MECHANIC DASHBOARD</h1>
+                <p class="body-sm mt-sm">Manage service requests, view vehicles, and log service completions.</p>
+            </div>
+            <div class="flex gap-md">
+                <span class="nav-date" id="live-date"></span>
+            </div>
+        </div>
+
+        <div class="m-stripe m-stripe-thin mb-xl"><span></span><span></span><span></span></div>
+
+        <!-- Filters -->
+        <div class="mb-lg flex justify-between items-center" style="flex-wrap:wrap;gap:var(--sp-md);">
+            <div class="flex gap-sm" style="flex-wrap:wrap;">
+                <a href="{{ url_for('mechanic_dashboard', status='all') }}" class="btn btn-sm {% if current_filter == 'all' %}btn-filled{% else %}btn-primary{% endif %}" style="height:36px;padding:8px 16px;">ALL</a>
+                <a href="{{ url_for('mechanic_dashboard', status='pending') }}" class="btn btn-sm {% if current_filter == 'pending' %}btn-filled{% else %}btn-primary{% endif %}" style="height:36px;padding:8px 16px;color:var(--warning);border-color:var(--warning);">PENDING</a>
+                <a href="{{ url_for('mechanic_dashboard', status='confirmed') }}" class="btn btn-sm {% if current_filter == 'confirmed' %}btn-filled{% else %}btn-primary{% endif %}" style="height:36px;padding:8px 16px;color:var(--success);border-color:var(--success);">CONFIRMED</a>
+                <a href="{{ url_for('mechanic_dashboard', status='completed') }}" class="btn btn-sm {% if current_filter == 'completed' %}btn-filled{% else %}btn-primary{% endif %}" style="height:36px;padding:8px 16px;color:var(--info);border-color:var(--info);">COMPLETED</a>
+                <a href="{{ url_for('mechanic_dashboard', status='cancelled') }}" class="btn btn-sm {% if current_filter == 'cancelled' %}btn-filled{% else %}btn-primary{% endif %}" style="height:36px;padding:8px 16px;color:var(--muted);border-color:var(--hairline);">CANCELLED</a>
+            </div>
+            <span class="caption">{{ bookings|length }} service request(s) found</span>
+        </div>
+
+        <!-- Bookings List -->
+        {% if bookings %}
+            <div style="display:flex;flex-direction:column;gap:var(--sp-md);">
+                {% for item in bookings %}
+                    {% set booking = item.booking %}
+                    {% set complaints = item.complaints %}
+                    <div class="card" style="background:var(--surface-soft);border-color:{% if booking.status == 'pending' %}var(--warning){% elif booking.status == 'confirmed' %}var(--success){% else %}var(--hairline){% endif %};">
+                        <div class="flex justify-between items-start" style="flex-wrap:wrap;gap:var(--sp-md);">
+                            <!-- Booking Header Info -->
+                            <div>
+                                <span class="booking-status {{ booking.status }}" style="margin-bottom:var(--sp-xs);">{{ booking.status }}</span>
+                                <h3 class="title-lg" style="margin-top:4px;">{{ booking.service_type.replace('_', ' ').title() }}</h3>
+                                <p class="body-sm text-white mt-xs">
+                                    🚗 {{ booking.vehicle.make }} {{ booking.vehicle.model }} ({{ booking.vehicle.registration_no }}) · Current KMs: {{ '{:,}'.format(booking.vehicle.current_kms) }}
+                                </p>
+                                <p class="body-sm mt-xs" style="color:var(--body-strong);">
+                                    👤 Customer: {{ booking.vehicle.owner.name }} ({{ booking.vehicle.owner.email }} {% if booking.vehicle.owner.phone %}· {{ booking.vehicle.owner.phone }}{% endif %})
+                                </p>
+                                <p class="caption mt-sm">
+                                    📅 Service Date: <strong>{{ booking.preferred_date.strftime('%A, %B %d, %Y') }}</strong>
+                                    {% if booking.status in ['pending', 'confirmed'] %}
+                                    <br>ⓘ Drop-off: 10 AM · Pick-up: 6 PM
+                                    {% endif %}
+                                </p>
+                                
+                                {% if booking.notes %}
+                                <div class="mt-md" style="padding:var(--sp-sm);background:var(--surface-card);border:1px solid var(--hairline-strong);">
+                                    <p class="caption" style="color:var(--muted);">CUSTOMER NOTES:</p>
+                                    <p class="body-sm" style="color:var(--body-strong);">{{ booking.notes }}</p>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="flex flex-col gap-sm text-right" style="min-width:180px;">
+                                {% if booking.status == 'pending' %}
+                                    <a href="{{ url_for('confirm_booking', booking_id=booking.id) }}" class="btn btn-filled btn-sm w-full">CONFIRM BOOKING</a>
+                                    <a href="{{ url_for('cancel_booking', booking_id=booking.id) }}" class="btn btn-danger btn-sm w-full">CANCEL REQUEST</a>
+                                {% elif booking.status == 'confirmed' %}
+                                    <a href="{{ url_for('complete_booking', booking_id=booking.id) }}" class="btn btn-filled btn-sm w-full" style="border-color:var(--success);background:var(--success);color:white;">LOG COMPLETION</a>
+                                    <a href="{{ url_for('cancel_booking', booking_id=booking.id) }}" class="btn btn-danger btn-sm w-full">CANCEL BOOKING</a>
+                                {% else %}
+                                    <span class="caption text-muted">Completed or cancelled requests cannot be modified.</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Active Complaints Checklist -->
+                        {% if complaints %}
+                            <div class="mt-lg" style="border-top:1px solid var(--hairline);padding-top:var(--sp-md);">
+                                <h4 class="title-sm" style="color:var(--m-red);font-size:14px;margin-bottom:var(--sp-sm);">⚠️ FLAGGED PARTS COMPLAINTS FOR THIS VEHICLE (TO BE CHANGED NEXT VISIT):</h4>
+                                <div class="grid-2">
+                                    {% for complaint in complaints %}
+                                        <div class="card card-elevated" style="padding:var(--sp-sm);border-left:3px solid var(--m-red);">
+                                            <p class="body-sm" style="color:var(--on-dark);font-weight:700;">{{ complaint.part_name }}</p>
+                                            <p class="caption mt-xs">{{ complaint.description }}</p>
+                                            <p class="caption" style="color:var(--muted);margin-top:4px;">Reported on {{ complaint.created_at.strftime('%b %d, %Y') }}</p>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">🔧</div>
+                <p class="body-md">No service bookings matching the filter.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

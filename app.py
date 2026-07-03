@@ -5,7 +5,8 @@ from config import Config
 from models import db, User, Vehicle, Service, Complaint, Booking, Feedback, Job, Newsletter
 from forms import (
     LoginForm, RegisterForm, VehicleForm, BookingForm,
-    ComplaintForm, FeedbackForm, NewsletterForm, UpdateKmsForm
+    ComplaintForm, FeedbackForm, NewsletterForm, UpdateKmsForm,
+    CompleteServiceForm
 )
 
 app = Flask(__name__)
@@ -141,6 +142,7 @@ def register():
             name=form.name.data,
             email=form.email.data,
             phone=form.phone.data,
+            role=form.role.data,
         )
         user.set_password(form.password.data)
         db.session.add(user)
@@ -161,6 +163,8 @@ def login():
             login_user(user)
             next_page = request.args.get("next")
             flash("Welcome back!", "success")
+            if user.role == "mechanic":
+                return redirect(next_page or url_for("mechanic_dashboard"))
             return redirect(next_page or url_for("dashboard"))
         flash("Invalid email or password.", "danger")
     return render_template("login.html", form=form)
@@ -178,6 +182,8 @@ def logout():
 @app.route("/dashboard")
 @login_required
 def dashboard():
+    if current_user.role == "mechanic":
+        return redirect(url_for("mechanic_dashboard"))
     vehicles = Vehicle.query.filter_by(user_id=current_user.id).all()
     bookings = Booking.query.join(Vehicle).filter(
         Vehicle.user_id == current_user.id,
@@ -409,6 +415,130 @@ def subscribe_newsletter():
         flash("Please enter a valid email.", "danger")
 
     return redirect(url_for("index"))
+
+
+# ── Mechanic / Service Man Routes ────────────────────────────────────
+from functools import wraps
+
+def mechanic_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or current_user.role != "mechanic":
+            flash("Access denied. Mechanics only.", "danger")
+            return redirect(url_for("dashboard"))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+@app.route("/mechanic/dashboard")
+@login_required
+@mechanic_required
+def mechanic_dashboard():
+    # Filter bookings if requested
+    status_filter = request.args.get("status", "all")
+    
+    query = Booking.query.order_by(Booking.preferred_date.desc())
+    if status_filter != "all":
+        query = query.filter_by(status=status_filter)
+        
+    bookings = query.all()
+    
+    # Enrich bookings with vehicle complaints count
+    enriched_bookings = []
+    for booking in bookings:
+        complaints = Complaint.query.join(Service).filter(
+            Service.vehicle_id == booking.vehicle_id,
+            Complaint.status != "resolved"
+        ).all()
+        enriched_bookings.append({
+            "booking": booking,
+            "complaints": complaints
+        })
+        
+    return render_template(
+        "mechanic_dashboard.html",
+        bookings=enriched_bookings,
+        current_filter=status_filter
+    )
+
+
+@app.route("/mechanic/booking/<int:booking_id>/confirm")
+@login_required
+@mechanic_required
+def confirm_booking(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    booking.status = "confirmed"
+    db.session.commit()
+    flash(f"Booking for {booking.vehicle.make} {booking.vehicle.model} confirmed.", "success")
+    return redirect(url_for("mechanic_dashboard"))
+
+
+@app.route("/mechanic/booking/<int:booking_id>/cancel")
+@login_required
+@mechanic_required
+def cancel_booking(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    booking.status = "cancelled"
+    db.session.commit()
+    flash(f"Booking for {booking.vehicle.make} {booking.vehicle.model} cancelled.", "info")
+    return redirect(url_for("mechanic_dashboard"))
+
+
+@app.route("/mechanic/booking/<int:booking_id>/complete", methods=["GET", "POST"])
+@login_required
+@mechanic_required
+def complete_booking(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    vehicle = booking.vehicle
+    
+    # Get active complaints for this vehicle
+    active_complaints = Complaint.query.join(Service).filter(
+        Service.vehicle_id == vehicle.id,
+        Complaint.status != "resolved"
+    ).all()
+    
+    form = CompleteServiceForm()
+    # Pre-fill KMs at service with current vehicle KMs as a starting point
+    if request.method == "GET" and not form.kms_at_service.data:
+        form.kms_at_service.data = vehicle.current_kms
+        
+    if form.validate_on_submit():
+        # Validate that kms_at_service >= current kms to prevent rollback
+        if form.kms_at_service.data < vehicle.current_kms:
+            flash(f"Kilometers cannot be less than the vehicle's last recorded kilometers ({vehicle.current_kms} km).", "warning")
+            return render_template("complete_service.html", form=form, booking=booking, complaints=active_complaints)
+            
+        # Create a new Service record
+        service = Service(
+            vehicle_id=vehicle.id,
+            service_date=datetime.utcnow(),
+            kms_at_service=form.kms_at_service.data,
+            service_type=booking.service_type.replace('_', ' ').title(),
+            notes=form.notes.data,
+            cost=form.cost.data
+        )
+        # Calculate next service dates
+        service.calculate_next_service(
+            interval_kms=app.config["SERVICE_INTERVAL_KMS"],
+            interval_months=app.config["SERVICE_INTERVAL_MONTHS"]
+        )
+        db.session.add(service)
+        
+        # Update vehicle current kms
+        vehicle.current_kms = form.kms_at_service.data
+        
+        # Update booking status
+        booking.status = "completed"
+        
+        # Resolve active complaints: link them to this service and mark resolved
+        for complaint in active_complaints:
+            complaint.status = "resolved"
+            
+        db.session.commit()
+        flash(f"Service completed and logged for {vehicle.make} {vehicle.model}!", "success")
+        return redirect(url_for("mechanic_dashboard"))
+        
+    return render_template("complete_service.html", form=form, booking=booking, complaints=active_complaints)
 
 
 # ── Seed Data ────────────────────────────────────────────────────────

@@ -18,6 +18,7 @@ class RegisterForm(FlaskForm):
     name = StringField("Full Name", validators=[DataRequired(), Length(min=2, max=120)])
     email = StringField("Email", validators=[DataRequired(), Email()])
     phone = StringField("Phone", validators=[Optional(), Length(max=20)])
+    role = SelectField("Role", choices=[("customer", "Customer"), ("mechanic", "Service Man / Mechanic")], default="customer")
     password = PasswordField("Password", validators=[DataRequired(), Length(min=6)])
     confirm_password = PasswordField(
         "Confirm Password",
@@ -74,3 +75,10 @@ class NewsletterForm(FlaskForm):
 
 class UpdateKmsForm(FlaskForm):
     current_kms = IntegerField("Current Kilometers", validators=[DataRequired(), NumberRange(min=0)])
+
+
+class CompleteServiceForm(FlaskForm):
+    kms_at_service = IntegerField("KMs at Service", validators=[DataRequired(), NumberRange(min=0)])
+    cost = FloatField("Service Cost", validators=[Optional(), NumberRange(min=0)])
+    notes = TextAreaField("Mechanic Service Notes", validators=[Optional(), Length(max=1000)])
+

@@ -14,6 +14,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     phone = db.Column(db.String(20), nullable=True)
     password_hash = db.Column(db.String(256), nullable=False)
+    role = db.Column(db.String(20), default="customer") # customer, mechanic
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     vehicles = db.relationship("Vehicle", backref="owner", lazy=True, cascade="all, delete-orphan")
