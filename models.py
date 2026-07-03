@@ -108,6 +108,7 @@ class Booking(db.Model):
     service_type = db.Column(db.String(100), nullable=False)
     notes = db.Column(db.Text, nullable=True)
     status = db.Column(db.String(20), default="pending")  # pending, confirmed, completed, cancelled
+    cancellation_reason = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     @staticmethod

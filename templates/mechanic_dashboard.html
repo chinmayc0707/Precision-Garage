@@ -62,6 +62,13 @@
                                     <p class="body-sm" style="color:var(--body-strong);">{{ booking.notes }}</p>
                                 </div>
                                 {% endif %}
+
+                                {% if booking.status == 'cancelled' and booking.cancellation_reason %}
+                                <div class="mt-md" style="padding:var(--sp-sm);background:var(--surface-card);border:1px solid var(--hairline-strong);border-left:3px solid var(--m-red);">
+                                    <p class="caption" style="color:var(--m-red);font-weight:700;">CANCELLATION REASON:</p>
+                                    <p class="body-sm" style="color:var(--body-strong);font-style:italic;">{{ booking.cancellation_reason }}</p>
+                                </div>
+                                {% endif %}
                             </div>
 
                             <!-- Actions -->

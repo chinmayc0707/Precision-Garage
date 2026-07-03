@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Cancel Booking{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="form-card form-card-wide">
+        <div class="auth-header">
+            <div class="m-stripe m-stripe-accent" style="margin:0 auto var(--sp-lg);"><span></span><span></span><span></span></div>
+            <p class="label-uppercase" style="color:var(--m-red);">Cancel Service Booking</p>
+            <h1 class="display-md">CANCEL BOOKING</h1>
+            <p class="body-md mt-sm">
+                Vehicle: <strong>{{ booking.vehicle.make }} {{ booking.vehicle.model }}</strong> ({{ booking.vehicle.registration_no }})
+            </p>
+            <p class="body-sm">Customer: {{ booking.vehicle.owner.name }} · Scheduled for {{ booking.preferred_date.strftime('%B %d, %Y') }}</p>
+        </div>
+
+        <div class="card card-elevated" style="margin-bottom:var(--sp-lg);border-left:4px solid var(--warning);background:rgba(244, 180, 0, 0.05);">
+            <p class="caption" style="color:var(--body);">
+                ⚠️ <strong>Note:</strong> Since this booking was previously accepted/confirmed, you must provide a reason for cancellation. This reason will be recorded and visible to the client.
+            </p>
+        </div>
+
+        <form method="POST" action="{{ url_for('cancel_booking', booking_id=booking.id) }}">
+            {{ form.hidden_tag() }}
+
+            <div class="form-group">
+                <label class="form-label" for="cancellation_reason">Reason for Cancellation</label>
+                <textarea name="cancellation_reason" id="cancellation_reason" class="form-textarea" placeholder="Provide a reason for the cancellation..." required></textarea>
+                {% for error in form.cancellation_reason.errors %}
+                <p class="form-error">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <button type="submit" class="btn btn-filled w-full" style="background:var(--m-red);border-color:var(--m-red);color:white;">CONFIRM CANCELLATION →</button>
+        </form>
+
+        <div class="auth-footer">
+            <a href="{{ url_for('mechanic_dashboard') }}" class="text-link">← BACK TO DASHBOARD</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

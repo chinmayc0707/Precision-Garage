@@ -82,3 +82,8 @@ class CompleteServiceForm(FlaskForm):
     cost = FloatField("Service Cost", validators=[Optional(), NumberRange(min=0)])
     notes = TextAreaField("Mechanic Service Notes", validators=[Optional(), Length(max=1000)])
 
+
+class CancelBookingForm(FlaskForm):
+    cancellation_reason = TextAreaField("Reason for Cancellation", validators=[DataRequired(), Length(min=5, max=1000)])
+
+
