@@ -12,8 +12,12 @@
                 <h1 class="display-md">MECHANIC DASHBOARD</h1>
                 <p class="body-sm mt-sm">Manage service requests, view vehicles, and log service completions.</p>
             </div>
-            <div class="flex gap-md">
+            <div class="flex gap-md" style="align-items: center;">
                 <span class="nav-date" id="live-date"></span>
+                <form action="{{ url_for('delete_account') }}" method="POST" onsubmit="return confirm('Are you sure you want to delete your account? This action cannot be undone.');" style="margin: 0;">
+                    {{ delete_account_form.hidden_tag() }}
+                    <button type="submit" class="btn btn-danger btn-sm">DELETE ACCOUNT</button>
+                </form>
             </div>
         </div>
 

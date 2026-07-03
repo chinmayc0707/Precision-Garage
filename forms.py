@@ -82,3 +82,6 @@ class CompleteServiceForm(FlaskForm):
     cost = FloatField("Service Cost", validators=[Optional(), NumberRange(min=0)])
     notes = TextAreaField("Mechanic Service Notes", validators=[Optional(), Length(max=1000)])
 
+
+class DeleteAccountForm(FlaskForm):
+    pass

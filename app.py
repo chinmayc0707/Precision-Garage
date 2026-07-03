@@ -6,7 +6,8 @@ from models import db, User, Vehicle, Service, Complaint, Booking, Feedback, Job
 from forms import (
     LoginForm, RegisterForm, VehicleForm, BookingForm,
     ComplaintForm, FeedbackForm, NewsletterForm, UpdateKmsForm,
-    CompleteServiceForm
+    CompleteServiceForm,
+    DeleteAccountForm
 )
 
 app = Flask(__name__)
@@ -237,6 +238,7 @@ def dashboard():
     ).order_by(Service.service_date.desc()).limit(10).all()
 
     vehicle_form = VehicleForm()
+    delete_account_form = DeleteAccountForm()
     update_kms_form = UpdateKmsForm()
 
     return render_template(
@@ -248,6 +250,7 @@ def dashboard():
         service_history=service_history,
         vehicle_form=vehicle_form,
         update_kms_form=update_kms_form,
+        delete_account_form=delete_account_form,
     )
 
 
@@ -472,6 +475,7 @@ def mechanic_required(f):
 @login_required
 @mechanic_required
 def mechanic_dashboard():
+    delete_account_form = DeleteAccountForm()
     # Filter bookings if requested
     status_filter = request.args.get("status", "all")
     
@@ -496,7 +500,8 @@ def mechanic_dashboard():
     return render_template(
         "mechanic_dashboard.html",
         bookings=enriched_bookings,
-        current_filter=status_filter
+        current_filter=status_filter,
+        delete_account_form=delete_account_form
     )
 
 
@@ -632,3 +637,20 @@ with app.app_context():
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
+
+@app.route("/delete_account", methods=["POST"])
+@login_required
+def delete_account():
+    form = DeleteAccountForm()
+    if form.validate_on_submit():
+        user = User.query.get(current_user.id)
+        if user:
+            # Delete feedbacks explicitly as they might not cascade depending on model setup
+            Feedback.query.filter_by(user_id=user.id).delete()
+            db.session.delete(user)
+            db.session.commit()
+            logout_user()
+            flash("Your account has been deleted successfully.", "success")
+            return redirect(url_for("index"))
+    flash("Error deleting account. Please try again.", "danger")
+    return redirect(url_for("dashboard"))
