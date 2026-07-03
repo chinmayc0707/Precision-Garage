@@ -37,8 +37,8 @@
                         {% if r.is_due %}
                             <strong style="color:var(--m-red);">SERVICE OVERDUE</strong> —
                         {% endif %}
-                        Next service: {{ r.next_date.strftime('%b %d, %Y') }} or at {{ '{:,}'.format(r.next_kms) }} km
-                        (current: {{ '{:,}'.format(r.vehicle.current_kms) }} km)
+                        Next service: {{ r.next_date.strftime('%b %d, %Y') }} or at {{ r.next_kms | format_indian }} km
+                        (current: {{ r.vehicle.current_kms | format_indian }} km)
                     </p>
                 </div>
                 <a href="{{ url_for('book_service') }}" class="btn btn-sm btn-primary">BOOK NOW</a>
@@ -107,7 +107,7 @@
                     <div class="vehicle-info-grid">
                         <div class="vehicle-info-item">
                             <div class="vehicle-info-label">Current KMs</div>
-                            <div class="vehicle-info-value">{{ '{:,}'.format(vehicle.current_kms) }}</div>
+                            <div class="vehicle-info-value">{{ vehicle.current_kms | format_indian }}</div>
                         </div>
                         <div class="vehicle-info-item">
                             <div class="vehicle-info-label">Services</div>
@@ -173,7 +173,7 @@
                 </div>
                 <div class="booking-info" style="flex:1;">
                     <p class="title-sm" style="color:var(--on-dark);">{{ service.service_type }}</p>
-                    <p class="caption mt-sm">{{ service.vehicle.make }} {{ service.vehicle.model }} · {{ '{:,}'.format(service.kms_at_service) }} km</p>
+                    <p class="caption mt-sm">{{ service.vehicle.make }} {{ service.vehicle.model }} · {{ service.kms_at_service | format_indian }} km</p>
                     {% if service.notes %}
                     <p class="body-sm mt-sm">{{ service.notes }}</p>
                     {% endif %}

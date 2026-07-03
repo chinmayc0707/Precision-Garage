@@ -37,7 +37,7 @@
             <div class="form-group">
                 <label class="form-label" for="kms_at_service">KMs at Service Completion</label>
                 <input type="number" name="kms_at_service" id="kms_at_service" class="form-input" placeholder="e.g. 15200" required>
-                <p class="caption mt-sm">Last recorded vehicle kilometers: <strong>{{ '{:,}'.format(booking.vehicle.current_kms) }} km</strong></p>
+                <p class="caption mt-sm">Last recorded vehicle kilometers: <strong>{{ booking.vehicle.current_kms | format_indian }} km</strong></p>
                 {% for error in form.kms_at_service.errors %}
                 <p class="form-error">{{ error }}</p>
                 {% endfor %}
