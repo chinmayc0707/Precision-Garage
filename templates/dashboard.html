@@ -56,14 +56,20 @@
 
             {% if bookings %}
                 {% for booking in bookings %}
-                <div class="booking-card">
-                    <div class="booking-date">
+                <div class="booking-card" style="{% if booking.status == 'cancelled' %}border-color: var(--hairline-strong); opacity: 0.85;{% endif %}">
+                    <div class="booking-date" style="{% if booking.status == 'cancelled' %}opacity: 0.5;{% endif %}">
                         <div class="booking-date-day">{{ booking.preferred_date.strftime('%d') }}</div>
                         <div class="booking-date-month">{{ booking.preferred_date.strftime('%b') }}</div>
                     </div>
                     <div class="booking-info" style="flex:1;">
-                        <p class="title-sm" style="color:var(--on-dark);">{{ booking.service_type.replace('_', ' ').title() }}</p>
+                        <p class="title-sm" style="color:{% if booking.status == 'cancelled' %}var(--muted){% else %}var(--on-dark){% endif %};">{{ booking.service_type.replace('_', ' ').title() }}</p>
                         <p class="caption mt-sm">{{ booking.vehicle.make }} {{ booking.vehicle.model }} · {{ booking.vehicle.registration_no }}</p>
+                        {% if booking.status == 'cancelled' and booking.cancellation_reason %}
+                        <div class="mt-sm" style="padding:var(--sp-xs); background:var(--surface-soft); border-left:2px solid var(--m-red);">
+                            <p class="caption" style="color:var(--m-red); font-weight:700;">CANCELLATION REASON:</p>
+                            <p class="body-sm" style="color:var(--body-strong); font-style:italic;">{{ booking.cancellation_reason }}</p>
+                        </div>
+                        {% endif %}
                     </div>
                     <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
                         <span class="booking-status {{ booking.status }}">{{ booking.status }}</span>

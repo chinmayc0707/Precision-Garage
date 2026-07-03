@@ -6,7 +6,7 @@ from models import db, User, Vehicle, Service, Complaint, Booking, Feedback, Job
 from forms import (
     LoginForm, RegisterForm, VehicleForm, BookingForm,
     ComplaintForm, FeedbackForm, NewsletterForm, UpdateKmsForm,
-    CompleteServiceForm
+    CompleteServiceForm, CancelBookingForm
 )
 
 app = Flask(__name__)
@@ -206,7 +206,7 @@ def dashboard():
     vehicles = Vehicle.query.filter_by(user_id=current_user.id).all()
     bookings = Booking.query.join(Vehicle).filter(
         Vehicle.user_id == current_user.id,
-        Booking.status.in_(["pending", "confirmed"]),
+        Booking.status.in_(["pending", "confirmed", "cancelled"]),
     ).order_by(Booking.preferred_date.asc()).all()
 
     # Gather service reminders
@@ -511,11 +511,24 @@ def confirm_booking(booking_id):
     return redirect(url_for("mechanic_dashboard"))
 
 
-@app.route("/mechanic/booking/<int:booking_id>/cancel")
+@app.route("/mechanic/booking/<int:booking_id>/cancel", methods=["GET", "POST"])
 @login_required
 @mechanic_required
 def cancel_booking(booking_id):
     booking = Booking.query.get_or_404(booking_id)
+    
+    # If the booking was previously accepted (confirmed), require a cancellation reason
+    if booking.status == "confirmed":
+        form = CancelBookingForm()
+        if form.validate_on_submit():
+            booking.status = "cancelled"
+            booking.cancellation_reason = form.cancellation_reason.data
+            db.session.commit()
+            flash(f"Booking for {booking.vehicle.make} {booking.vehicle.model} has been cancelled with reason: {form.cancellation_reason.data}", "info")
+            return redirect(url_for("mechanic_dashboard"))
+        return render_template("cancel_booking.html", form=form, booking=booking)
+    
+    # Otherwise (e.g. pending), cancel immediately
     booking.status = "cancelled"
     db.session.commit()
     flash(f"Booking for {booking.vehicle.make} {booking.vehicle.model} cancelled.", "info")
