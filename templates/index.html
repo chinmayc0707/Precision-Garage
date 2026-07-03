@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+{% block meta_desc %}Pyramid Garage — Premium automotive service and repair. Expert technicians, state-of-the-art facility. Book your service today.{% endblock %}
+
+{% block content %}
+<!-- ── Hero Carousel ───────────────────────────────────────────────── -->
+<section class="hero" id="hero">
+    <div class="hero-slides">
+        <div class="hero-slide active">
+            <img src="{{ url_for('static', filename='images/hero_garage.png') }}" alt="Premium garage workshop">
+            <div class="hero-overlay">
+                <div class="hero-content">
+                    <p class="label-uppercase">Premium Auto Service</p>
+                    <h1 class="display-xl">PRECISION<br>ENGINEERING</h1>
+                    <p>Expert technicians. State-of-the-art facility. Your vehicle deserves nothing less.</p>
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('book_service') }}" class="btn btn-primary">BOOK SERVICE →</a>
+                    {% else %}
+                    <a href="{{ url_for('register') }}" class="btn btn-primary">GET STARTED →</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-slide">
+            <img src="{{ url_for('static', filename='images/hero_engine.png') }}" alt="Engine service">
+            <div class="hero-overlay">
+                <div class="hero-content">
+                    <p class="label-uppercase">Expert Diagnostics</p>
+                    <h1 class="display-xl">EVERY DETAIL<br>MATTERS</h1>
+                    <p>From oil changes to full engine rebuilds — we handle it all with precision.</p>
+                    <a href="{{ url_for('services') }}" class="btn btn-primary">OUR SERVICES →</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-slide">
+            <img src="{{ url_for('static', filename='images/hero_car.png') }}" alt="Premium car service">
+            <div class="hero-overlay">
+                <div class="hero-content">
+                    <p class="label-uppercase">Service Reminders</p>
+                    <h1 class="display-xl">NEVER MISS<br>A SERVICE</h1>
+                    <p>Automatic reminders every 2,000 km or 2 months. Stay ahead of maintenance.</p>
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-primary">VIEW DASHBOARD →</a>
+                    {% else %}
+                    <a href="{{ url_for('register') }}" class="btn btn-primary">REGISTER NOW →</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="hero-controls">
+        <div class="hero-dots">
+            <button class="hero-dot active" aria-label="Slide 1"></button>
+            <button class="hero-dot" aria-label="Slide 2"></button>
+            <button class="hero-dot" aria-label="Slide 3"></button>
+        </div>
+        <div class="hero-arrows">
+            <button class="btn-icon hero-prev" aria-label="Previous slide">‹</button>
+            <button class="btn-icon hero-next" aria-label="Next slide">›</button>
+        </div>
+    </div>
+</section>
+
+<!-- ── M Stripe ────────────────────────────────────────────────────── -->
+<div class="m-stripe"><span></span><span></span><span></span></div>
+
+<!-- ── Metrics Band ────────────────────────────────────────────────── -->
+<section class="metrics-band section-sm" id="metrics">
+    <div class="container">
+        <div class="text-center mb-xl fade-up">
+            <p class="label-uppercase" style="color:var(--muted);">Trusted by Hundreds</p>
+            <h2 class="display-lg mt-sm">ABOUT OUR SUCCESS</h2>
+        </div>
+        <div class="grid-4 fade-up">
+            <div class="metric-item">
+                <div class="metric-value" data-count="{{ total_services if total_services > 0 else 1250 }}" data-suffix="+">0</div>
+                <div class="metric-label">Vehicles Serviced</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-value" data-count="{{ total_users if total_users > 0 else 340 }}" data-suffix="+">0</div>
+                <div class="metric-label">Happy Clients</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-value" data-count="{{ avg_rating if avg_rating > 0 else 4.8|int }}" data-suffix="/5">0</div>
+                <div class="metric-label">Average Rating</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-value" data-count="8" data-suffix="+">0</div>
+                <div class="metric-label">Years Experience</div>
+            </div>
+        </div>
+        <div class="text-center mt-xl fade-up">
+            <p class="body-md" style="max-width:600px;margin:0 auto;">Well-functioning vehicles after every service. Our clients trust us with their most valued machines — and we deliver, every single time.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ── M Stripe ────────────────────────────────────────────────────── -->
+<div class="m-stripe"><span></span><span></span><span></span></div>
+
+<!-- ── How It Works ────────────────────────────────────────────────── -->
+<section class="section" id="how-it-works">
+    <div class="container text-center">
+        <div class="fade-up">
+            <p class="label-uppercase" style="color:var(--muted);">Simple Process</p>
+            <h2 class="display-lg mt-sm mb-xl">HOW IT WORKS</h2>
+        </div>
+
+        <div class="steps fade-up">
+            <div class="step">
+                <div class="step-number">01</div>
+                <h3 class="step-title">Register Your Account</h3>
+                <p class="step-desc">Create an account and add your vehicles with current mileage details.</p>
+            </div>
+
+            <div class="step-arrow">↓</div>
+
+            <div class="step">
+                <div class="step-number">02</div>
+                <h3 class="step-title">Book Your Service</h3>
+                <p class="step-desc">Choose your service type and preferred date. We handle up to 7 vehicles per day.</p>
+            </div>
+
+            <div class="step-arrow">↓</div>
+
+            <div class="step">
+                <div class="step-number">03</div>
+                <h3 class="step-title">Drop Off & Collect</h3>
+                <p class="step-desc">Leave your vehicle at <strong style="color:var(--on-dark);">10:00 AM</strong> and collect it at <strong style="color:var(--on-dark);">6:00 PM</strong>. Same-day service guaranteed.</p>
+            </div>
+        </div>
+
+        <div class="mt-xl fade-up">
+            <div class="grid-3" style="max-width:800px;margin:0 auto;">
+                <div class="spec-cell">
+                    <div class="spec-value">10 AM</div>
+                    <div class="spec-label">Drop-off Time</div>
+                </div>
+                <div class="spec-cell">
+                    <div class="spec-value">6 PM</div>
+                    <div class="spec-label">Pick-up Time</div>
+                </div>
+                <div class="spec-cell">
+                    <div class="spec-value">7 MAX</div>
+                    <div class="spec-label">Vehicles / Day</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-xl fade-up">
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('book_service') }}" class="btn btn-filled">BOOK YOUR SERVICE →</a>
+            {% else %}
+            <a href="{{ url_for('register') }}" class="btn btn-filled">GET STARTED →</a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- ── M Stripe ────────────────────────────────────────────────────── -->
+<div class="m-stripe"><span></span><span></span><span></span></div>
+
+<!-- ── Featured Jobs ───────────────────────────────────────────────── -->
+<section class="section" id="featured-jobs" style="background:var(--surface-soft);">
+    <div class="container text-center">
+        <div class="fade-up">
+            <p class="label-uppercase" style="color:var(--muted);">Join Our Team</p>
+            <h2 class="display-lg mt-sm mb-xl">FEATURED POSITIONS</h2>
+        </div>
+
+        {% if featured_jobs %}
+        <div class="grid-3 fade-up">
+            {% for job in featured_jobs %}
+            <div class="job-card featured">
+                <span class="job-type-badge">{{ job.job_type }}</span>
+                <h3 class="title-lg mt-sm">{{ job.title }}</h3>
+                <p class="body-sm mt-sm">{{ job.description[:120] }}...</p>
+                <p class="caption mt-md">📍 {{ job.location }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="fade-up">
+            <p class="body-md" style="color:var(--muted);">No featured positions at the moment. Check back soon!</p>
+        </div>
+        {% endif %}
+
+        <div class="mt-xl fade-up">
+            <a href="{{ url_for('job_board') }}" class="text-link">VIEW ALL POSITIONS <span class="arrow">→</span></a>
+        </div>
+    </div>
+</section>
+
+<!-- ── M Stripe ────────────────────────────────────────────────────── -->
+<div class="m-stripe"><span></span><span></span><span></span></div>
+
+<!-- ── Testimonials ────────────────────────────────────────────────── -->
+{% if feedbacks %}
+<section class="section" id="testimonials">
+    <div class="container">
+        <div class="text-center fade-up">
+            <p class="label-uppercase" style="color:var(--muted);">Client Reviews</p>
+            <h2 class="display-lg mt-sm mb-xl">WHAT THEY SAY</h2>
+        </div>
+
+        <div class="grid-3 fade-up">
+            {% for fb in feedbacks[:6] %}
+            <div class="testimonial-card">
+                <div class="testimonial-stars">
+                    {% for i in range(fb.rating) %}★{% endfor %}{% for i in range(5 - fb.rating) %}☆{% endfor %}
+                </div>
+                <p class="testimonial-text">"{{ fb.comment or 'Great service!' }}"</p>
+                <p class="testimonial-author">{{ fb.user.name }}</p>
+                <p class="caption mt-sm">{{ fb.created_at.strftime('%b %d, %Y') }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- ── Newsletter ──────────────────────────────────────────────────── -->
+<div class="m-stripe"><span></span><span></span><span></span></div>
+<section class="newsletter-band section" id="newsletter">
+    <div class="container">
+        <div class="fade-up" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:40px;">
+            <div>
+                <p class="label-uppercase" style="color:var(--muted);">Stay Updated</p>
+                <h2 class="display-md mt-sm">SUBSCRIBE TO OUR NEWSLETTER</h2>
+                <p class="body-md mt-md" style="max-width:400px;">Get service reminders, exclusive offers, and automotive insights delivered to your inbox.</p>
+            </div>
+            <form class="newsletter-form" id="newsletter-form" method="POST" action="{{ url_for('subscribe_newsletter') }}">
+                {{ newsletter_form.hidden_tag() }}
+                <input type="email" name="email" class="form-input" placeholder="Enter your email" required>
+                <button type="submit" class="btn btn-filled">SUBSCRIBE</button>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Our Services{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <p class="label-uppercase" style="color:var(--muted);">What We Offer</p>
+    <h1 class="display-lg mt-sm">OUR SERVICES</h1>
+    <p class="body-md">Expert automotive care for every need. From routine maintenance to complex repairs.</p>
+</div>
+
+<section class="section">
+    <div class="container">
+        <div class="grid-3">
+            {% for svc in service_types %}
+            <div class="service-card fade-up">
+                <div class="card-icon">{{ svc.icon }}</div>
+                <h3 class="card-title">{{ svc.name }}</h3>
+                <p class="card-desc mt-sm">{{ svc.desc }}</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Garage Info -->
+        <div class="mt-xl fade-up">
+            <div class="m-stripe m-stripe-thin mb-xl"><span></span><span></span><span></span></div>
+            <div class="text-center mb-xl">
+                <h2 class="display-sm">GARAGE SPECIFICATIONS</h2>
+            </div>
+            <div class="grid-4" style="max-width:900px;margin:0 auto;">
+                <div class="spec-cell">
+                    <div class="spec-value">10 AM</div>
+                    <div class="spec-label">Drop-off</div>
+                </div>
+                <div class="spec-cell">
+                    <div class="spec-value">6 PM</div>
+                    <div class="spec-label">Pick-up</div>
+                </div>
+                <div class="spec-cell">
+                    <div class="spec-value">7</div>
+                    <div class="spec-label">Max / Day</div>
+                </div>
+                <div class="spec-cell">
+                    <div class="spec-value">2K KM</div>
+                    <div class="spec-label">Service Interval</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-xl fade-up">
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('book_service') }}" class="btn btn-filled">BOOK NOW →</a>
+            {% else %}
+            <a href="{{ url_for('register') }}" class="btn btn-filled">REGISTER TO BOOK →</a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,466 @@
+from datetime import datetime, date
+from flask import Flask, render_template, redirect, url_for, flash, request, jsonify
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from config import Config
+from models import db, User, Vehicle, Service, Complaint, Booking, Feedback, Job, Newsletter
+from forms import (
+    LoginForm, RegisterForm, VehicleForm, BookingForm,
+    ComplaintForm, FeedbackForm, NewsletterForm, UpdateKmsForm
+)
+
+app = Flask(__name__)
+app.config.from_object(Config)
+
+db.init_app(app)
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "login"
+login_manager.login_message_category = "warning"
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+
+# ── Context Processors ──────────────────────────────────────────────
+@app.context_processor
+def inject_globals():
+    return {
+        "current_date": datetime.now(),
+        "garage_open": Config.GARAGE_OPEN_TIME,
+        "garage_close": Config.GARAGE_CLOSE_TIME,
+    }
+
+
+# ── Public Routes ────────────────────────────────────────────────────
+@app.route("/")
+def index():
+    # Fetch latest feedbacks for testimonials
+    feedbacks = Feedback.query.order_by(Feedback.created_at.desc()).limit(6).all()
+    # Stats
+    total_services = Service.query.count()
+    total_users = User.query.count()
+    avg_rating = db.session.query(db.func.avg(Feedback.rating)).scalar() or 0
+    total_feedbacks = Feedback.query.count()
+    featured_jobs = Job.query.filter_by(is_featured=True).limit(3).all()
+    newsletter_form = NewsletterForm()
+    return render_template(
+        "index.html",
+        feedbacks=feedbacks,
+        total_services=total_services,
+        total_users=total_users,
+        avg_rating=round(avg_rating, 1),
+        total_feedbacks=total_feedbacks,
+        featured_jobs=featured_jobs,
+        newsletter_form=newsletter_form,
+    )
+
+
+@app.route("/about")
+def about():
+    total_services = Service.query.count()
+    total_users = User.query.count()
+    avg_rating = db.session.query(db.func.avg(Feedback.rating)).scalar() or 0
+    feedbacks = Feedback.query.order_by(Feedback.created_at.desc()).limit(10).all()
+    return render_template(
+        "about.html",
+        total_services=total_services,
+        total_users=total_users,
+        avg_rating=round(avg_rating, 1),
+        feedbacks=feedbacks,
+    )
+
+
+@app.route("/services")
+def services():
+    service_types = [
+        {
+            "name": "Full Service",
+            "desc": "Complete bumper-to-bumper vehicle inspection and maintenance.",
+            "icon": "🔧",
+        },
+        {
+            "name": "Oil Change",
+            "desc": "Premium oil replacement with filter change and fluid top-up.",
+            "icon": "🛢️",
+        },
+        {
+            "name": "Brake Service",
+            "desc": "Brake pad inspection, replacement, and rotor resurfacing.",
+            "icon": "🛑",
+        },
+        {
+            "name": "Tire Rotation & Alignment",
+            "desc": "Tire balancing, rotation, and precision wheel alignment.",
+            "icon": "🔄",
+        },
+        {
+            "name": "Engine Diagnostic",
+            "desc": "Full electronic diagnostic scan with detailed reporting.",
+            "icon": "📊",
+        },
+        {
+            "name": "AC Service & Repair",
+            "desc": "Climate system inspection, gas recharge, and repair.",
+            "icon": "❄️",
+        },
+        {
+            "name": "Body Repair & Paint",
+            "desc": "Dent removal, panel beating, and professional re-painting.",
+            "icon": "🎨",
+        },
+        {
+            "name": "General Checkup",
+            "desc": "Quick health check before a long drive or seasonal change.",
+            "icon": "✅",
+        },
+    ]
+    return render_template("services.html", service_types=service_types)
+
+
+@app.route("/jobs")
+def job_board():
+    featured = Job.query.filter_by(is_featured=True).order_by(Job.created_at.desc()).all()
+    regular = Job.query.filter_by(is_featured=False).order_by(Job.created_at.desc()).all()
+    return render_template("job_board.html", featured=featured, regular=regular)
+
+
+# ── Auth Routes ──────────────────────────────────────────────────────
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for("dashboard"))
+    form = RegisterForm()
+    if form.validate_on_submit():
+        if User.query.filter_by(email=form.email.data).first():
+            flash("Email already registered. Please login.", "warning")
+            return redirect(url_for("login"))
+        user = User(
+            name=form.name.data,
+            email=form.email.data,
+            phone=form.phone.data,
+        )
+        user.set_password(form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        flash("Account created successfully! Please login.", "success")
+        return redirect(url_for("login"))
+    return render_template("register.html", form=form)
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for("dashboard"))
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user and user.check_password(form.password.data):
+            login_user(user)
+            next_page = request.args.get("next")
+            flash("Welcome back!", "success")
+            return redirect(next_page or url_for("dashboard"))
+        flash("Invalid email or password.", "danger")
+    return render_template("login.html", form=form)
+
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    flash("You have been logged out.", "info")
+    return redirect(url_for("index"))
+
+
+# ── Dashboard ────────────────────────────────────────────────────────
+@app.route("/dashboard")
+@login_required
+def dashboard():
+    vehicles = Vehicle.query.filter_by(user_id=current_user.id).all()
+    bookings = Booking.query.join(Vehicle).filter(
+        Vehicle.user_id == current_user.id,
+        Booking.status.in_(["pending", "confirmed"]),
+    ).order_by(Booking.preferred_date.asc()).all()
+
+    # Gather service reminders
+    reminders = []
+    for vehicle in vehicles:
+        latest_service = Service.query.filter_by(vehicle_id=vehicle.id).order_by(
+            Service.service_date.desc()
+        ).first()
+        if latest_service and latest_service.next_service_date:
+            is_due = latest_service.is_service_due(vehicle.current_kms)
+            reminders.append({
+                "vehicle": vehicle,
+                "service": latest_service,
+                "is_due": is_due,
+                "next_date": latest_service.next_service_date,
+                "next_kms": latest_service.next_service_kms,
+            })
+
+    # Active complaints
+    complaints = Complaint.query.join(Service).join(Vehicle).filter(
+        Vehicle.user_id == current_user.id,
+        Complaint.status != "resolved",
+    ).all()
+
+    # Service history
+    service_history = Service.query.join(Vehicle).filter(
+        Vehicle.user_id == current_user.id,
+    ).order_by(Service.service_date.desc()).limit(10).all()
+
+    vehicle_form = VehicleForm()
+    update_kms_form = UpdateKmsForm()
+
+    return render_template(
+        "dashboard.html",
+        vehicles=vehicles,
+        bookings=bookings,
+        reminders=reminders,
+        complaints=complaints,
+        service_history=service_history,
+        vehicle_form=vehicle_form,
+        update_kms_form=update_kms_form,
+    )
+
+
+# ── Vehicle Management ───────────────────────────────────────────────
+@app.route("/vehicle/add", methods=["POST"])
+@login_required
+def add_vehicle():
+    form = VehicleForm()
+    if form.validate_on_submit():
+        if Vehicle.query.filter_by(registration_no=form.registration_no.data).first():
+            flash("Vehicle with this registration already exists.", "warning")
+            return redirect(url_for("dashboard"))
+        vehicle = Vehicle(
+            user_id=current_user.id,
+            make=form.make.data,
+            model=form.model.data,
+            year=form.year.data,
+            registration_no=form.registration_no.data,
+            current_kms=form.current_kms.data,
+        )
+        db.session.add(vehicle)
+        db.session.commit()
+        flash(f"{vehicle.make} {vehicle.model} added!", "success")
+    else:
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f"{field}: {error}", "danger")
+    return redirect(url_for("dashboard"))
+
+
+@app.route("/vehicle/<int:vehicle_id>/update-kms", methods=["POST"])
+@login_required
+def update_kms(vehicle_id):
+    vehicle = Vehicle.query.get_or_404(vehicle_id)
+    if vehicle.user_id != current_user.id:
+        flash("Unauthorized.", "danger")
+        return redirect(url_for("dashboard"))
+    form = UpdateKmsForm()
+    if form.validate_on_submit():
+        vehicle.current_kms = form.current_kms.data
+        db.session.commit()
+        flash("Kilometers updated.", "success")
+    return redirect(url_for("dashboard"))
+
+
+# ── Booking ──────────────────────────────────────────────────────────
+@app.route("/book", methods=["GET", "POST"])
+@login_required
+def book_service():
+    form = BookingForm()
+    vehicles = Vehicle.query.filter_by(user_id=current_user.id).all()
+    form.vehicle_id.choices = [(v.id, f"{v.make} {v.model} ({v.registration_no})") for v in vehicles]
+
+    if not vehicles:
+        flash("Please add a vehicle first.", "warning")
+        return redirect(url_for("dashboard"))
+
+    if form.validate_on_submit():
+        if not Booking.is_date_available(form.preferred_date.data, Config.MAX_VEHICLES_PER_DAY):
+            flash(
+                f"Sorry, {form.preferred_date.data.strftime('%B %d, %Y')} is fully booked "
+                f"(max {Config.MAX_VEHICLES_PER_DAY} vehicles/day). Please choose another date.",
+                "warning",
+            )
+            return render_template("book.html", form=form)
+
+        booking = Booking(
+            vehicle_id=form.vehicle_id.data,
+            preferred_date=form.preferred_date.data,
+            service_type=form.service_type.data,
+            notes=form.notes.data,
+        )
+        db.session.add(booking)
+        db.session.commit()
+        flash(
+            f"Booking confirmed for {form.preferred_date.data.strftime('%B %d, %Y')}! "
+            f"Drop off at {Config.GARAGE_OPEN_TIME} AM, collect at {Config.GARAGE_CLOSE_TIME.replace('18', '6')} PM.",
+            "success",
+        )
+        return redirect(url_for("dashboard"))
+
+    # Get unavailable dates for the calendar
+    return render_template("book.html", form=form)
+
+
+@app.route("/api/date-availability/<date_str>")
+@login_required
+def check_date_availability(date_str):
+    try:
+        check_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+    except ValueError:
+        return jsonify({"error": "Invalid date format"}), 400
+
+    count = Booking.count_for_date(check_date)
+    available = count < Config.MAX_VEHICLES_PER_DAY
+    return jsonify({
+        "date": date_str,
+        "booked": count,
+        "max": Config.MAX_VEHICLES_PER_DAY,
+        "available": available,
+        "slots_left": Config.MAX_VEHICLES_PER_DAY - count,
+    })
+
+
+# ── Complaints ───────────────────────────────────────────────────────
+@app.route("/service/<int:service_id>/complaint", methods=["GET", "POST"])
+@login_required
+def add_complaint(service_id):
+    service = Service.query.get_or_404(service_id)
+    # Verify ownership
+    if service.vehicle.user_id != current_user.id:
+        flash("Unauthorized.", "danger")
+        return redirect(url_for("dashboard"))
+
+    form = ComplaintForm()
+    if form.validate_on_submit():
+        complaint = Complaint(
+            service_id=service.id,
+            part_name=form.part_name.data,
+            description=form.description.data,
+        )
+        db.session.add(complaint)
+        db.session.commit()
+        flash(f"Complaint for '{form.part_name.data}' registered. It will be addressed at your next service.", "success")
+        return redirect(url_for("dashboard"))
+
+    return render_template("complaint.html", form=form, service=service)
+
+
+# ── Feedback ─────────────────────────────────────────────────────────
+@app.route("/feedback", methods=["GET", "POST"])
+@login_required
+def feedback():
+    form = FeedbackForm()
+    # Populate service choices
+    user_services = Service.query.join(Vehicle).filter(
+        Vehicle.user_id == current_user.id
+    ).order_by(Service.service_date.desc()).all()
+    form.service_id.choices = [(0, "General Feedback")] + [
+        (s.id, f"{s.service_type} — {s.service_date.strftime('%b %d, %Y')}") for s in user_services
+    ]
+
+    if form.validate_on_submit():
+        rating_val = int(form.rating.data)
+        if rating_val < 1 or rating_val > 5:
+            flash("Please select a rating between 1 and 5.", "warning")
+            return render_template("feedback.html", form=form)
+
+        fb = Feedback(
+            user_id=current_user.id,
+            service_id=form.service_id.data if form.service_id.data != 0 else None,
+            rating=rating_val,
+            comment=form.comment.data,
+        )
+        db.session.add(fb)
+        db.session.commit()
+        flash("Thank you for your feedback!", "success")
+        return redirect(url_for("dashboard"))
+
+    return render_template("feedback.html", form=form)
+
+
+# ── Newsletter ───────────────────────────────────────────────────────
+@app.route("/newsletter", methods=["POST"])
+def subscribe_newsletter():
+    form = NewsletterForm()
+    if form.validate_on_submit():
+        if Newsletter.query.filter_by(email=form.email.data).first():
+            if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                return jsonify({"status": "info", "message": "You're already subscribed!"})
+            flash("You're already subscribed!", "info")
+            return redirect(url_for("index"))
+
+        sub = Newsletter(email=form.email.data)
+        db.session.add(sub)
+        db.session.commit()
+
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return jsonify({"status": "success", "message": "Successfully subscribed!"})
+        flash("Successfully subscribed to our newsletter!", "success")
+    else:
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return jsonify({"status": "error", "message": "Please enter a valid email."})
+        flash("Please enter a valid email.", "danger")
+
+    return redirect(url_for("index"))
+
+
+# ── Seed Data ────────────────────────────────────────────────────────
+def seed_data():
+    """Seed initial job listings if empty."""
+    if Job.query.count() == 0:
+        jobs = [
+            Job(
+                title="Senior Automotive Technician",
+                description="5+ years of experience in vehicle diagnostics and repair. ASE certification preferred. Work on premium vehicles in a state-of-the-art facility.",
+                job_type="Full-time",
+                location="On-site",
+                is_featured=True,
+            ),
+            Job(
+                title="Service Advisor",
+                description="Customer-facing role managing service appointments, communicating repair needs, and ensuring a premium client experience.",
+                job_type="Full-time",
+                location="On-site",
+                is_featured=True,
+            ),
+            Job(
+                title="Junior Mechanic / Apprentice",
+                description="Learn from experienced technicians in a modern garage environment. Ideal for recent automotive graduates.",
+                job_type="Internship",
+                location="On-site",
+                is_featured=True,
+            ),
+            Job(
+                title="Parts Inventory Specialist",
+                description="Manage OEM and aftermarket parts inventory. Strong organizational skills and automotive parts knowledge required.",
+                job_type="Part-time",
+                location="On-site",
+                is_featured=False,
+            ),
+            Job(
+                title="Detailing Specialist",
+                description="Professional vehicle detailing — interior and exterior. Experience with ceramic coating and paint correction a plus.",
+                job_type="Full-time",
+                location="On-site",
+                is_featured=False,
+            ),
+        ]
+        db.session.add_all(jobs)
+        db.session.commit()
+
+
+# ── App Init ─────────────────────────────────────────────────────────
+with app.app_context():
+    db.create_all()
+    seed_data()
+
+
+if __name__ == "__main__":
+    app.run(debug=True, port=5000)

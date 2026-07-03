@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}About Us{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <p class="label-uppercase" style="color:var(--muted);">Our Story</p>
+    <h1 class="display-lg mt-sm">ABOUT PYRAMID GARAGE</h1>
+    <p class="body-md">8+ years of precision automotive service. Built on trust, driven by excellence.</p>
+</div>
+
+<!-- ── Metrics ──────────────────────────────────────────────────────── -->
+<section class="metrics-band section-sm">
+    <div class="container">
+        <div class="grid-4 fade-up">
+            <div class="metric-item">
+                <div class="metric-value" data-count="{{ total_services if total_services > 0 else 1250 }}" data-suffix="+">0</div>
+                <div class="metric-label">Vehicles Serviced</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-value" data-count="{{ total_users if total_users > 0 else 340 }}" data-suffix="+">0</div>
+                <div class="metric-label">Happy Clients</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-value" data-count="{{ avg_rating if avg_rating > 0 else 4.8|int }}" data-suffix="/5">0</div>
+                <div class="metric-label">Average Rating</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-value" data-count="8" data-suffix="+">0</div>
+                <div class="metric-label">Years Experience</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="m-stripe"><span></span><span></span><span></span></div>
+
+<!-- ── About Content ───────────────────────────────────────────────── -->
+<section class="section">
+    <div class="container">
+        <div class="grid-2" style="gap:var(--sp-xxl);align-items:start;">
+            <div class="fade-up">
+                <p class="label-uppercase" style="color:var(--muted);">Our Mission</p>
+                <h2 class="display-sm mt-sm mb-lg">ENGINEERED FOR EXCELLENCE</h2>
+                <p class="body-md">At Pyramid Garage, we believe every vehicle deserves the same level of care and precision that went into building it. Our team of certified technicians brings years of hands-on experience to every service.</p>
+                <p class="body-md mt-lg">We don't just fix cars — we build lasting relationships with our clients. Our service reminder system ensures your vehicle is always at peak performance, with automatic notifications every 2,000 km or 2 months.</p>
+            </div>
+            <div class="fade-up">
+                <div class="card" style="background:var(--surface-soft);">
+                    <h3 class="title-lg mb-lg">WHY CHOOSE US</h3>
+                    <div style="display:flex;flex-direction:column;gap:var(--sp-md);">
+                        <div class="flex gap-md items-center">
+                            <span style="font-size:24px;">🔧</span>
+                            <div>
+                                <p class="title-sm" style="color:var(--on-dark);">Expert Technicians</p>
+                                <p class="body-sm">Certified professionals with 8+ years experience</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-md items-center">
+                            <span style="font-size:24px;">⏰</span>
+                            <div>
+                                <p class="title-sm" style="color:var(--on-dark);">Same-Day Service</p>
+                                <p class="body-sm">Drop at 10 AM, collect at 6 PM</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-md items-center">
+                            <span style="font-size:24px;">🔔</span>
+                            <div>
+                                <p class="title-sm" style="color:var(--on-dark);">Smart Reminders</p>
+                                <p class="body-sm">Auto alerts at 2,000 km or 2 months</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-md items-center">
+                            <span style="font-size:24px;">📋</span>
+                            <div>
+                                <p class="title-sm" style="color:var(--on-dark);">Parts Tracking</p>
+                                <p class="body-sm">Flag issues — we fix them next visit</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── Testimonials ────────────────────────────────────────────────── -->
+{% if feedbacks %}
+<div class="m-stripe"><span></span><span></span><span></span></div>
+<section class="section" style="background:var(--surface-soft);">
+    <div class="container">
+        <div class="text-center mb-xl fade-up">
+            <p class="label-uppercase" style="color:var(--muted);">Testimonials</p>
+            <h2 class="display-md mt-sm">WHAT OUR CLIENTS SAY</h2>
+        </div>
+        <div class="grid-3">
+            {% for fb in feedbacks[:6] %}
+            <div class="testimonial-card fade-up">
+                <div class="testimonial-stars">
+                    {% for i in range(fb.rating) %}★{% endfor %}{% for i in range(5 - fb.rating) %}☆{% endfor %}
+                </div>
+                <p class="testimonial-text">"{{ fb.comment or 'Excellent service, highly recommended!' }}"</p>
+                <p class="testimonial-author">{{ fb.user.name }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

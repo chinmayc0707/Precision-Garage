@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Book Service{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="form-card form-card-wide">
+        <div class="auth-header">
+            <div class="m-stripe m-stripe-accent" style="margin:0 auto var(--sp-lg);"><span></span><span></span><span></span></div>
+            <h1 class="display-md">BOOK SERVICE</h1>
+            <p class="body-md mt-sm">Schedule your vehicle's service. Drop off at <strong style="color:var(--on-dark);">10:00 AM</strong>, collect at <strong style="color:var(--on-dark);">6:00 PM</strong>.</p>
+        </div>
+
+        <form method="POST" action="{{ url_for('book_service') }}">
+            {{ form.hidden_tag() }}
+
+            <div class="form-group">
+                <label class="form-label" for="vehicle_id">Vehicle</label>
+                <select name="vehicle_id" id="vehicle_id" class="form-select" required>
+                    {% for value, label in form.vehicle_id.choices %}
+                    <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+                {% for error in form.vehicle_id.errors %}
+                <p class="form-error">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="service_type">Service Type</label>
+                <select name="service_type" id="service_type" class="form-select" required>
+                    {% for value, label in form.service_type.choices %}
+                    <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="preferred_date">Preferred Date</label>
+                <input type="date" name="preferred_date" id="preferred_date" class="form-input" required onchange="checkDateAvailability(this)">
+                <div id="date-availability" class="mt-sm" style="font-size:14px;"></div>
+                {% for error in form.preferred_date.errors %}
+                <p class="form-error">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="notes">Additional Notes (optional)</label>
+                <textarea name="notes" id="notes" class="form-textarea" placeholder="Any specific issues or requests..."></textarea>
+            </div>
+
+            <div class="card-elevated" style="padding:var(--sp-md);margin-bottom:var(--sp-lg);background:var(--surface-soft);border:1px solid var(--hairline-strong);">
+                <p class="caption" style="color:var(--body);">
+                    ⓘ Max 7 vehicles per day · Drop-off 10:00 AM · Pick-up 6:00 PM · You'll receive a confirmation once approved.
+                </p>
+            </div>
+
+            <button type="submit" class="btn btn-filled w-full">CONFIRM BOOKING →</button>
+        </form>
+
+        <div class="auth-footer">
+            <a href="{{ url_for('dashboard') }}" class="text-link">← BACK TO DASHBOARD</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="form-card">
+        <div class="auth-header">
+            <div class="m-stripe m-stripe-accent" style="margin:0 auto var(--sp-lg);"><span></span><span></span><span></span></div>
+            <h1 class="display-md">LOGIN</h1>
+            <p class="body-md mt-sm">Access your dashboard and manage your vehicles.</p>
+        </div>
+
+        <form method="POST" action="{{ url_for('login') }}">
+            {{ form.hidden_tag() }}
+
+            <div class="form-group">
+                <label class="form-label" for="email">Email</label>
+                <input type="email" name="email" id="email" class="form-input" value="{{ form.email.data or '' }}" placeholder="you@example.com" required>
+                {% for error in form.email.errors %}
+                <p class="form-error">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="password">Password</label>
+                <input type="password" name="password" id="password" class="form-input" placeholder="Enter your password" required>
+                {% for error in form.password.errors %}
+                <p class="form-error">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <button type="submit" class="btn btn-filled w-full">LOGIN →</button>
+        </form>
+
+        <div class="auth-footer">
+            <p class="body-sm">Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

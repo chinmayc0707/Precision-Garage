@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="container">
+        <!-- ── Header ──────────────────────────────────────────────── -->
+        <div class="dashboard-header">
+            <div>
+                <p class="label-uppercase" style="color:var(--muted);">Welcome back</p>
+                <h1 class="display-md">{{ current_user.name.upper() }}</h1>
+                <p class="body-sm mt-sm">Today is {{ current_date.strftime('%A, %B %d, %Y') }}</p>
+            </div>
+            <div class="flex gap-md">
+                <a href="{{ url_for('book_service') }}" class="btn btn-primary btn-sm">BOOK SERVICE</a>
+                <a href="{{ url_for('feedback') }}" class="btn btn-primary btn-sm" style="border-color:var(--hairline);">LEAVE FEEDBACK</a>
+            </div>
+        </div>
+
+        <div class="m-stripe m-stripe-thin mb-xl"><span></span><span></span><span></span></div>
+
+        <!-- ── Service Reminders ───────────────────────────────────── -->
+        {% if reminders %}
+        <div class="dashboard-section">
+            <div class="dashboard-section-header">
+                <h2 class="title-lg">SERVICE REMINDERS</h2>
+                <span class="label-uppercase text-warning">{{ reminders|selectattr('is_due')|list|length }} DUE</span>
+            </div>
+
+            {% for r in reminders %}
+            <div class="reminder-banner {{ 'due' if r.is_due else '' }}">
+                <span class="reminder-icon">{{ '🔴' if r.is_due else '🟡' }}</span>
+                <div class="reminder-content">
+                    <p class="reminder-title">{{ r.vehicle.make }} {{ r.vehicle.model }} ({{ r.vehicle.registration_no }})</p>
+                    <p class="reminder-details">
+                        {% if r.is_due %}
+                            <strong style="color:var(--m-red);">SERVICE OVERDUE</strong> —
+                        {% endif %}
+                        Next service: {{ r.next_date.strftime('%b %d, %Y') }} or at {{ '{:,}'.format(r.next_kms) }} km
+                        (current: {{ '{:,}'.format(r.vehicle.current_kms) }} km)
+                    </p>
+                </div>
+                <a href="{{ url_for('book_service') }}" class="btn btn-sm btn-primary">BOOK NOW</a>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- ── Upcoming Bookings ───────────────────────────────────── -->
+        <div class="dashboard-section">
+            <div class="dashboard-section-header">
+                <h2 class="title-lg">UPCOMING BOOKINGS</h2>
+                <span class="caption">Drop-off: 10 AM · Pick-up: 6 PM</span>
+            </div>
+
+            {% if bookings %}
+                {% for booking in bookings %}
+                <div class="booking-card">
+                    <div class="booking-date">
+                        <div class="booking-date-day">{{ booking.preferred_date.strftime('%d') }}</div>
+                        <div class="booking-date-month">{{ booking.preferred_date.strftime('%b') }}</div>
+                    </div>
+                    <div class="booking-info">
+                        <p class="title-sm" style="color:var(--on-dark);">{{ booking.service_type.replace('_', ' ').title() }}</p>
+                        <p class="caption mt-sm">{{ booking.vehicle.make }} {{ booking.vehicle.model }} · {{ booking.vehicle.registration_no }}</p>
+                    </div>
+                    <span class="booking-status {{ booking.status }}">{{ booking.status }}</span>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">📅</div>
+                    <p class="body-sm">No upcoming bookings.</p>
+                    <a href="{{ url_for('book_service') }}" class="text-link mt-md">BOOK A SERVICE <span class="arrow">→</span></a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- ── My Vehicles ─────────────────────────────────────────── -->
+        <div class="dashboard-section">
+            <div class="dashboard-section-header">
+                <h2 class="title-lg">MY VEHICLES</h2>
+                <button class="btn btn-sm btn-primary" data-modal="add-vehicle-modal">ADD VEHICLE</button>
+            </div>
+
+            {% if vehicles %}
+            <div class="grid-3">
+                {% for vehicle in vehicles %}
+                <div class="vehicle-card">
+                    <div class="vehicle-card-header">
+                        <div>
+                            <h3 class="title-lg" style="font-size:18px;">{{ vehicle.make }} {{ vehicle.model }}</h3>
+                            <p class="caption">{{ vehicle.registration_no }}</p>
+                        </div>
+                        {% if vehicle.year %}
+                        <span class="label-uppercase" style="color:var(--muted);font-size:12px;">{{ vehicle.year }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="vehicle-info-grid">
+                        <div class="vehicle-info-item">
+                            <div class="vehicle-info-label">Current KMs</div>
+                            <div class="vehicle-info-value">{{ '{:,}'.format(vehicle.current_kms) }}</div>
+                        </div>
+                        <div class="vehicle-info-item">
+                            <div class="vehicle-info-label">Services</div>
+                            <div class="vehicle-info-value">{{ vehicle.services|length }}</div>
+                        </div>
+                    </div>
+                    <form method="POST" action="{{ url_for('update_kms', vehicle_id=vehicle.id) }}" class="mt-md" style="display:flex;gap:8px;">
+                        {{ update_kms_form.hidden_tag() }}
+                        <input type="number" name="current_kms" class="form-input" style="height:40px;font-size:14px;" placeholder="Update KMs" value="{{ vehicle.current_kms }}">
+                        <button type="submit" class="btn btn-sm btn-primary" style="white-space:nowrap;">UPDATE</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">🚗</div>
+                    <p class="body-sm">No vehicles added yet.</p>
+                    <button class="btn btn-sm btn-primary mt-md" data-modal="add-vehicle-modal">ADD YOUR FIRST VEHICLE</button>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- ── Active Complaints ───────────────────────────────────── -->
+        {% if complaints %}
+        <div class="dashboard-section">
+            <div class="dashboard-section-header">
+                <h2 class="title-lg">ACTIVE COMPLAINTS</h2>
+                <span class="label-uppercase text-warning">{{ complaints|length }} PENDING</span>
+            </div>
+
+            {% for complaint in complaints %}
+            <div class="complaint-item">
+                <div class="flex items-center justify-between gap-md" style="flex-wrap:wrap;">
+                    <div>
+                        <h4 class="title-sm" style="color:var(--on-dark);">{{ complaint.part_name }}</h4>
+                        <p class="body-sm mt-sm">{{ complaint.description }}</p>
+                        <p class="caption mt-sm">Reported: {{ complaint.created_at.strftime('%b %d, %Y') }} · Service: {{ complaint.service.service_type }}</p>
+                    </div>
+                    <span class="complaint-status {{ complaint.status }}">{{ complaint.status }}</span>
+                </div>
+            </div>
+            {% endfor %}
+
+            <p class="body-sm mt-md" style="color:var(--muted);">
+                ⓘ Parts flagged here will be addressed at your next service visit.
+            </p>
+        </div>
+        {% endif %}
+
+        <!-- ── Service History ─────────────────────────────────────── -->
+        {% if service_history %}
+        <div class="dashboard-section">
+            <div class="dashboard-section-header">
+                <h2 class="title-lg">SERVICE HISTORY</h2>
+            </div>
+
+            {% for service in service_history %}
+            <div class="booking-card">
+                <div class="booking-date">
+                    <div class="booking-date-day">{{ service.service_date.strftime('%d') }}</div>
+                    <div class="booking-date-month">{{ service.service_date.strftime('%b %y') }}</div>
+                </div>
+                <div class="booking-info" style="flex:1;">
+                    <p class="title-sm" style="color:var(--on-dark);">{{ service.service_type }}</p>
+                    <p class="caption mt-sm">{{ service.vehicle.make }} {{ service.vehicle.model }} · {{ '{:,}'.format(service.kms_at_service) }} km</p>
+                    {% if service.notes %}
+                    <p class="body-sm mt-sm">{{ service.notes }}</p>
+                    {% endif %}
+                </div>
+                <div class="flex gap-sm">
+                    <a href="{{ url_for('add_complaint', service_id=service.id) }}" class="btn btn-sm btn-danger" style="font-size:11px;">REPORT ISSUE</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ── Add Vehicle Modal ───────────────────────────────────────────── -->
+<div class="modal-overlay" id="add-vehicle-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <h2 class="title-lg">ADD VEHICLE</h2>
+            <button class="btn-icon modal-close">×</button>
+        </div>
+        <div class="m-stripe m-stripe-thin mb-lg"><span></span><span></span><span></span></div>
+
+        <form method="POST" action="{{ url_for('add_vehicle') }}">
+            {{ vehicle_form.hidden_tag() }}
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-md);">
+                <div class="form-group">
+                    <label class="form-label" for="make">Make</label>
+                    <input type="text" name="make" id="make" class="form-input" placeholder="e.g. BMW" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="model">Model</label>
+                    <input type="text" name="model" id="model" class="form-input" placeholder="e.g. M3" required>
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-md);">
+                <div class="form-group">
+                    <label class="form-label" for="year">Year</label>
+                    <input type="number" name="year" id="year" class="form-input" placeholder="2024">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="registration_no">Registration No.</label>
+                    <input type="text" name="registration_no" id="registration_no" class="form-input" placeholder="KA-01-AB-1234" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="current_kms">Current Kilometers</label>
+                <input type="number" name="current_kms" id="current_kms" class="form-input" placeholder="e.g. 15000" required>
+            </div>
+
+            <button type="submit" class="btn btn-filled w-full">ADD VEHICLE →</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

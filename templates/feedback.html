@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Leave Feedback{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="form-card form-card-wide">
+        <div class="auth-header">
+            <div class="m-stripe m-stripe-accent" style="margin:0 auto var(--sp-lg);"><span></span><span></span><span></span></div>
+            <h1 class="display-md">YOUR FEEDBACK</h1>
+            <p class="body-md mt-sm">Help us improve. Rate your experience and share your thoughts.</p>
+        </div>
+
+        <form method="POST" action="{{ url_for('feedback') }}">
+            {{ form.hidden_tag() }}
+
+            <div class="form-group">
+                <label class="form-label">Rating</label>
+                <div class="star-rating">
+                    <button type="button" class="star">☆</button>
+                    <button type="button" class="star">☆</button>
+                    <button type="button" class="star">☆</button>
+                    <button type="button" class="star">☆</button>
+                    <button type="button" class="star">☆</button>
+                </div>
+                <input type="hidden" name="rating" value="">
+                {% for error in form.rating.errors %}
+                <p class="form-error">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="service_id">Related Service (optional)</label>
+                <select name="service_id" id="service_id" class="form-select">
+                    {% for value, label in form.service_id.choices %}
+                    <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="comment">Comments</label>
+                <textarea name="comment" id="comment" class="form-textarea" placeholder="Tell us about your experience..."></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-filled w-full">SUBMIT FEEDBACK →</button>
+        </form>
+
+        <div class="auth-footer">
+            <a href="{{ url_for('dashboard') }}" class="text-link">← BACK TO DASHBOARD</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
