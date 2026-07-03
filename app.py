@@ -25,6 +25,25 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
+
+
+# ── Custom Filters ──────────────────────────────────────────────────
+@app.template_filter('format_indian')
+def format_indian(n):
+    try:
+        s = str(int(n))
+    except (ValueError, TypeError):
+        return str(n)
+    if len(s) <= 3:
+        return s
+    res = s[-3:]
+    s = s[:-3]
+    while len(s) > 2:
+        res = s[-2:] + "," + res
+        s = s[:-2]
+    res = s + "," + res
+    return res
+
 # ── Context Processors ──────────────────────────────────────────────
 @app.context_processor
 def inject_globals():

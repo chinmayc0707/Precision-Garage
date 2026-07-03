@@ -44,7 +44,7 @@
                                 <span class="booking-status {{ booking.status }}" style="margin-bottom:var(--sp-xs);">{{ booking.status }}</span>
                                 <h3 class="title-lg" style="margin-top:4px;">{{ booking.service_type.replace('_', ' ').title() }}</h3>
                                 <p class="body-sm text-white mt-xs">
-                                    🚗 {{ booking.vehicle.make }} {{ booking.vehicle.model }} ({{ booking.vehicle.registration_no }}) · Current KMs: {{ '{:,}'.format(booking.vehicle.current_kms) }}
+                                    🚗 {{ booking.vehicle.make }} {{ booking.vehicle.model }} ({{ booking.vehicle.registration_no }}) · Current KMs: {{ booking.vehicle.current_kms | format_indian }}
                                 </p>
                                 <p class="body-sm mt-xs" style="color:var(--body-strong);">
                                     👤 Customer: {{ booking.vehicle.owner.name }} ({{ booking.vehicle.owner.email }} {% if booking.vehicle.owner.phone %}· {{ booking.vehicle.owner.phone }}{% endif %})
