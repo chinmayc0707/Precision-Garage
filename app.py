@@ -314,6 +314,25 @@ def book_service():
     return render_template("book.html", form=form)
 
 
+@app.route("/booking/<int:booking_id>/cancel", methods=["POST"])
+@login_required
+def cancel_user_booking(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    # Check ownership
+    if booking.vehicle.user_id != current_user.id:
+        flash("Unauthorized.", "danger")
+        return redirect(url_for("dashboard"))
+
+    if booking.status not in ["pending", "confirmed"]:
+        flash("You can only cancel pending or confirmed bookings.", "warning")
+        return redirect(url_for("dashboard"))
+
+    booking.status = "cancelled"
+    db.session.commit()
+    flash(f"Booking for {booking.vehicle.make} {booking.vehicle.model} on {booking.preferred_date.strftime('%B %d, %Y')} cancelled successfully.", "success")
+    return redirect(url_for("dashboard"))
+
+
 @app.route("/api/date-availability/<date_str>")
 @login_required
 def check_date_availability(date_str):

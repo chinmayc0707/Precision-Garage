@@ -61,11 +61,18 @@
                         <div class="booking-date-day">{{ booking.preferred_date.strftime('%d') }}</div>
                         <div class="booking-date-month">{{ booking.preferred_date.strftime('%b') }}</div>
                     </div>
-                    <div class="booking-info">
+                    <div class="booking-info" style="flex:1;">
                         <p class="title-sm" style="color:var(--on-dark);">{{ booking.service_type.replace('_', ' ').title() }}</p>
                         <p class="caption mt-sm">{{ booking.vehicle.make }} {{ booking.vehicle.model }} · {{ booking.vehicle.registration_no }}</p>
                     </div>
-                    <span class="booking-status {{ booking.status }}">{{ booking.status }}</span>
+                    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+                        <span class="booking-status {{ booking.status }}">{{ booking.status }}</span>
+                        {% if booking.status in ['pending', 'confirmed'] %}
+                        <form action="{{ url_for('cancel_user_booking', booking_id=booking.id) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Are you sure you want to cancel this booking?');">
+                            <button type="submit" class="btn btn-sm btn-danger" style="font-size: 11px; padding: 4px 8px;">CANCEL</button>
+                        </form>
+                        {% endif %}
+                    </div>
                 </div>
                 {% endfor %}
             {% else %}
