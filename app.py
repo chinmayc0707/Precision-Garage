@@ -308,6 +308,24 @@ def book_service():
     return render_template("book.html", form=form)
 
 
+@app.route("/booking/<int:booking_id>/cancel", methods=["POST"])
+@login_required
+def cancel_booking(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    if booking.vehicle.user_id != current_user.id:
+        flash("Unauthorized.", "danger")
+        return redirect(url_for("dashboard"))
+
+    if booking.status in ["completed", "cancelled"]:
+        flash("Cannot cancel a completed or already cancelled booking.", "warning")
+        return redirect(url_for("dashboard"))
+
+    booking.status = "cancelled"
+    db.session.commit()
+    flash("Booking cancelled successfully.", "success")
+    return redirect(url_for("dashboard"))
+
+
 @app.route("/api/date-availability/<date_str>")
 @login_required
 def check_date_availability(date_str):

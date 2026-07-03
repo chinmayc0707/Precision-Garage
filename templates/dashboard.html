@@ -65,7 +65,14 @@
                         <p class="title-sm" style="color:var(--on-dark);">{{ booking.service_type.replace('_', ' ').title() }}</p>
                         <p class="caption mt-sm">{{ booking.vehicle.make }} {{ booking.vehicle.model }} · {{ booking.vehicle.registration_no }}</p>
                     </div>
-                    <span class="booking-status {{ booking.status }}">{{ booking.status }}</span>
+                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+                        <span class="booking-status {{ booking.status }}">{{ booking.status }}</span>
+                        {% if booking.status == 'pending' or booking.status == 'confirmed' %}
+                        <form method="POST" action="{{ url_for('cancel_booking', booking_id=booking.id) }}" onsubmit="return confirm('Are you sure you want to cancel this booking?');">
+                            <button type="submit" class="btn btn-sm btn-danger" style="font-size:11px;">CANCEL</button>
+                        </form>
+                        {% endif %}
+                    </div>
                 </div>
                 {% endfor %}
             {% else %}
