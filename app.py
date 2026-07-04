@@ -2,7 +2,7 @@ from datetime import datetime, date
 from flask import Flask, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from config import Config
-from models import db, User, Vehicle, Service, Complaint, Booking, Feedback, Job, Newsletter
+from models import db, User, Vehicle, Service, Complaint, Booking, Feedback, Newsletter
 from forms import (
     LoginForm, RegisterForm, VehicleForm, BookingForm,
     ComplaintForm, GeneralComplaintForm, FeedbackForm, NewsletterForm, UpdateKmsForm,
@@ -77,7 +77,6 @@ def index():
     total_users = User.query.count()
     avg_rating = db.session.query(db.func.avg(Feedback.rating)).scalar() or 0
     total_feedbacks = Feedback.query.count()
-    featured_jobs = Job.query.filter_by(is_featured=True).limit(3).all()
     newsletter_form = NewsletterForm()
     return render_template(
         "index.html",
@@ -86,7 +85,6 @@ def index():
         total_users=total_users,
         avg_rating=round(avg_rating, 1),
         total_feedbacks=total_feedbacks,
-        featured_jobs=featured_jobs,
         newsletter_form=newsletter_form,
     )
 
@@ -153,11 +151,6 @@ def services():
     return render_template("services.html", service_types=service_types)
 
 
-@app.route("/jobs")
-def job_board():
-    featured = Job.query.filter_by(is_featured=True).order_by(Job.created_at.desc()).all()
-    regular = Job.query.filter_by(is_featured=False).order_by(Job.created_at.desc()).all()
-    return render_template("job_board.html", featured=featured, regular=regular)
 
 
 # ── Auth Routes ──────────────────────────────────────────────────────
@@ -712,55 +705,11 @@ def complete_booking(booking_id):
     return render_template("complete_service.html", form=form, booking=booking, complaints=active_complaints)
 
 
-# ── Seed Data ────────────────────────────────────────────────────────
-def seed_data():
-    """Seed initial job listings if empty."""
-    if Job.query.count() == 0:
-        jobs = [
-            Job(
-                title="Senior Automotive Technician",
-                description="5+ years of experience in vehicle diagnostics and repair. ASE certification preferred. Work on premium vehicles in a state-of-the-art facility.",
-                job_type="Full-time",
-                location="On-site",
-                is_featured=True,
-            ),
-            Job(
-                title="Service Advisor",
-                description="Customer-facing role managing service appointments, communicating repair needs, and ensuring a premium client experience.",
-                job_type="Full-time",
-                location="On-site",
-                is_featured=True,
-            ),
-            Job(
-                title="Junior Mechanic / Apprentice",
-                description="Learn from experienced technicians in a modern garage environment. Ideal for recent automotive graduates.",
-                job_type="Internship",
-                location="On-site",
-                is_featured=True,
-            ),
-            Job(
-                title="Parts Inventory Specialist",
-                description="Manage OEM and aftermarket parts inventory. Strong organizational skills and automotive parts knowledge required.",
-                job_type="Part-time",
-                location="On-site",
-                is_featured=False,
-            ),
-            Job(
-                title="Detailing Specialist",
-                description="Professional vehicle detailing — interior and exterior. Experience with ceramic coating and paint correction a plus.",
-                job_type="Full-time",
-                location="On-site",
-                is_featured=False,
-            ),
-        ]
-        db.session.add_all(jobs)
-        db.session.commit()
 
 
 # ── App Init ─────────────────────────────────────────────────────────
 with app.app_context():
     db.create_all()
-    seed_data()
 
 
 if __name__ == "__main__":

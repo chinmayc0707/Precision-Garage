@@ -32,7 +32,6 @@
                     <a href="{{ url_for('complaints') }}" class="{% if request.endpoint == 'complaints' %}active{% endif %}">Complaints</a>
                     {% endif %}
                 {% endif %}
-                <a href="{{ url_for('job_board') }}" class="{% if request.endpoint == 'job_board' %}active{% endif %}">Job Board</a>
             </div>
 
             <div class="nav-right">
@@ -68,7 +67,6 @@
             <a href="{{ url_for('complaints') }}">Complaints</a>
             {% endif %}
         {% endif %}
-        <a href="{{ url_for('job_board') }}">Job Board</a>
         {% if current_user.is_authenticated %}
         <a href="{{ url_for('feedback') }}">Feedback</a>
         <a href="{{ url_for('logout') }}">Logout</a>
@@ -119,7 +117,6 @@
                     <div class="footer-links">
                         <a href="{{ url_for('index') }}">Home</a>
                         <a href="{{ url_for('about') }}">About Us</a>
-                        <a href="{{ url_for('job_board') }}">Careers</a>
                         {% if current_user.is_authenticated %}
                         <a href="{{ url_for('book_service') }}">Book Service</a>
                         <a href="{{ url_for('feedback') }}">Leave Feedback</a>
