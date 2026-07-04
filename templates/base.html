@@ -26,8 +26,10 @@
                 {% if current_user.is_authenticated %}
                     {% if current_user.role == 'mechanic' %}
                     <a href="{{ url_for('mechanic_dashboard') }}" class="{% if request.endpoint == 'mechanic_dashboard' %}active{% endif %}">Dashboard</a>
+                    <a href="{{ url_for('mechanic_complaints') }}" class="{% if request.endpoint == 'mechanic_complaints' %}active{% endif %}">Complaints Log</a>
                     {% else %}
                     <a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}">Dashboard</a>
+                    <a href="{{ url_for('complaints') }}" class="{% if request.endpoint == 'complaints' %}active{% endif %}">Complaints</a>
                     {% endif %}
                 {% endif %}
                 <a href="{{ url_for('job_board') }}" class="{% if request.endpoint == 'job_board' %}active{% endif %}">Job Board</a>
@@ -60,8 +62,10 @@
         {% if current_user.is_authenticated %}
             {% if current_user.role == 'mechanic' %}
             <a href="{{ url_for('mechanic_dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('mechanic_complaints') }}">Complaints Log</a>
             {% else %}
             <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('complaints') }}">Complaints</a>
             {% endif %}
         {% endif %}
         <a href="{{ url_for('job_board') }}">Job Board</a>

@@ -63,6 +63,14 @@ class ComplaintForm(FlaskForm):
     description = TextAreaField("Describe the Issue", validators=[DataRequired(), Length(max=1000)])
 
 
+class GeneralComplaintForm(FlaskForm):
+    vehicle_id = SelectField("Select Vehicle", coerce=int, validators=[DataRequired()])
+    service_id = SelectField("Select Service Visit", coerce=int, validators=[DataRequired()])
+    part_name = StringField("Part Name / Component", validators=[DataRequired(), Length(max=120)])
+    description = TextAreaField("Describe the Issue", validators=[DataRequired(), Length(max=1000)])
+
+
+
 class FeedbackForm(FlaskForm):
     service_id = SelectField("Select Service (optional)", coerce=int, validators=[Optional()])
     rating = HiddenField("Rating", validators=[DataRequired()])

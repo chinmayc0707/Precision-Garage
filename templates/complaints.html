@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block title %}My Complaints{% endblock %}
+
+{% block content %}
+<div class="dashboard section-sm">
+    <div class="container">
+        <!-- Page Header -->
+        <div class="dashboard-header">
+            <div>
+                <p class="label-uppercase" style="color:var(--m-red);">Support Center</p>
+                <h1 class="display-md">COMPLAINTS & ISSUES</h1>
+                <p class="body-sm mt-sm">Report new issues or track existing complaints about your vehicles.</p>
+            </div>
+            <div class="flex gap-md">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-sm btn-primary">BACK TO DASHBOARD</a>
+            </div>
+        </div>
+
+        <div class="m-stripe m-stripe-thin mb-xl"><span></span><span></span><span></span></div>
+
+        <!-- Main Layout Grid -->
+        <div class="grid-2">
+            
+            <!-- Left Column: Complaints History -->
+            <div>
+                <!-- Tab Headers -->
+                <div class="mb-lg flex gap-md" style="border-bottom:1px solid var(--hairline);padding-bottom:12px;">
+                    <button class="btn btn-sm btn-primary active-tab" id="tab-active" style="height:36px;padding:4px 16px;">ACTIVE ISSUES</button>
+                    <button class="btn btn-sm btn-primary" id="tab-resolved" style="height:36px;padding:4px 16px;border-color:var(--hairline);color:var(--muted);">RESOLVED HISTORY</button>
+                </div>
+
+                <!-- Active Complaints Container -->
+                <div id="active-list">
+                    {% if active_complaints %}
+                        {% for complaint in active_complaints %}
+                        <div class="complaint-item" style="border-left:4px solid {% if complaint.status == 'scheduled' %}var(--info){% else %}var(--warning){% endif %};">
+                            <div class="flex justify-between items-start gap-md">
+                                <div>
+                                    <span class="complaint-status {{ complaint.status }}">{{ complaint.status }}</span>
+                                    <h4 class="title-sm mt-sm" style="color:var(--on-dark); font-weight:700;">{{ complaint.part_name }}</h4>
+                                    <p class="body-sm mt-xs" style="color:var(--body-strong);">{{ complaint.description }}</p>
+                                    <p class="caption mt-sm" style="color:var(--muted);">
+                                        🚗 Vehicle: {{ complaint.service.vehicle.make }} {{ complaint.service.vehicle.model }} ({{ complaint.service.vehicle.registration_no }})
+                                        <br>🔧 Linked Service: {{ complaint.service.service_type }} ({{ complaint.service.service_date.strftime('%b %d, %Y') }})
+                                        <br>📅 Reported: {{ complaint.created_at.strftime('%b %d, %Y') }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state" style="padding:var(--sp-xl) 0;">
+                            <div class="empty-state-icon">🛡️</div>
+                            <p class="body-sm">No active complaints found.</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Resolved Complaints Container -->
+                <div id="resolved-list" class="hidden">
+                    {% if resolved_complaints %}
+                        {% for complaint in resolved_complaints %}
+                        <div class="complaint-item" style="border-left:4px solid var(--success); opacity:0.8;">
+                            <div class="flex justify-between items-start gap-md">
+                                <div>
+                                    <span class="complaint-status resolved">Resolved</span>
+                                    <h4 class="title-sm mt-sm" style="color:var(--on-dark); text-decoration: line-through; color:var(--muted);">{{ complaint.part_name }}</h4>
+                                    <p class="body-sm mt-xs" style="color:var(--muted);">{{ complaint.description }}</p>
+                                    <p class="caption mt-sm" style="color:var(--muted);">
+                                        🚗 Vehicle: {{ complaint.service.vehicle.make }} {{ complaint.service.vehicle.model }} ({{ complaint.service.vehicle.registration_no }})
+                                        <br>🔧 Resolved at service: {{ complaint.service.service_type }}
+                                        <br>📅 Reported: {{ complaint.created_at.strftime('%b %d, %Y') }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state" style="padding:var(--sp-xl) 0;">
+                            <div class="empty-state-icon">✅</div>
+                            <p class="body-sm">No resolved complaints found.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Right Column: Raise Complaint Form -->
+            <div>
+                <div class="card card-elevated" style="border-top:3px solid var(--m-red);">
+                    <div style="margin-bottom:var(--sp-md);">
+                        <h3 class="title-lg">REPORT NEW ISSUE</h3>
+                        <p class="body-sm mt-xs" style="color:var(--body);">Flag a part issue linked to one of your vehicle's past service visits. Our team will review it before your next service.</p>
+                    </div>
+
+                    {% if vehicles %}
+                        <form method="POST" action="{{ url_for('complaints') }}" id="complaint-form">
+                            {{ form.hidden_tag() }}
+
+                            <div class="form-group">
+                                <label class="form-label" for="vehicle_id">Select Vehicle</label>
+                                <select name="vehicle_id" id="vehicle_select" class="form-select" required>
+                                    <option value="" disabled selected>-- Choose Vehicle --</option>
+                                    {% for choice in form.vehicle_id.choices %}
+                                        <option value="{{ choice[0] }}">{{ choice[1] }}</option>
+                                    {% endfor %}
+                                </select>
+                                {% for error in form.vehicle_id.errors %}
+                                <p class="form-error">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="service_id">Service Visit</label>
+                                <select name="service_id" id="service_select" class="form-select" disabled required>
+                                    <option value="" disabled selected>-- Select a vehicle first --</option>
+                                </select>
+                                <p id="service-help" class="caption mt-sm" style="color:var(--muted);"></p>
+                                {% for error in form.service_id.errors %}
+                                <p class="form-error">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="part_name">Part Name / Component</label>
+                                <input type="text" name="part_name" id="part_name" class="form-input" placeholder="e.g. Brake pads squeaking, Oil leak, AC not cooling" required>
+                                {% for error in form.part_name.errors %}
+                                <p class="form-error">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="description">Describe the Issue</label>
+                                <textarea name="description" id="description" class="form-textarea" placeholder="Describe the problem you are experiencing in detail..." required></textarea>
+                                {% for error in form.description.errors %}
+                                <p class="form-error">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+
+                            <button type="submit" class="btn btn-filled w-full" id="submit-btn" disabled>SUBMIT COMPLAINT →</button>
+                        </form>
+                    {% else %}
+                        <div class="empty-state" style="padding:var(--sp-lg) 0;">
+                            <p class="body-sm">You must add a vehicle before raising a complaint.</p>
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-sm btn-primary mt-md">ADD VEHICLE</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // ── Tab Management ────────────────────────────────────────────────
+    const tabActive = document.getElementById('tab-active');
+    const tabResolved = document.getElementById('tab-resolved');
+    const activeList = document.getElementById('active-list');
+    const resolvedList = document.getElementById('resolved-list');
+
+    if (tabActive && tabResolved) {
+        tabActive.addEventListener('click', () => {
+            tabActive.classList.add('active-tab');
+            tabActive.style.borderColor = 'var(--on-dark)';
+            tabActive.style.color = 'var(--on-dark)';
+            tabResolved.classList.remove('active-tab');
+            tabResolved.style.borderColor = 'var(--hairline)';
+            tabResolved.style.color = 'var(--muted)';
+            activeList.classList.remove('hidden');
+            resolvedList.classList.add('hidden');
+        });
+
+        tabResolved.addEventListener('click', () => {
+            tabResolved.classList.add('active-tab');
+            tabResolved.style.borderColor = 'var(--on-dark)';
+            tabResolved.style.color = 'var(--on-dark)';
+            tabActive.classList.remove('active-tab');
+            tabActive.style.borderColor = 'var(--hairline)';
+            tabActive.style.color = 'var(--muted)';
+            resolvedList.classList.remove('hidden');
+            activeList.classList.add('hidden');
+        });
+    }
+
+    // ── Dynamic Service Populating ──────────────────────────────────
+    const vehicleSelect = document.getElementById('vehicle_select');
+    const serviceSelect = document.getElementById('service_select');
+    const serviceHelp = document.getElementById('service-help');
+    const submitBtn = document.getElementById('submit-btn');
+
+    if (vehicleSelect && serviceSelect) {
+        vehicleSelect.addEventListener('change', async () => {
+            const vehicleId = vehicleSelect.value;
+            if (!vehicleId) return;
+
+            // Reset service dropdown
+            serviceSelect.innerHTML = '<option value="" disabled selected>-- Loading service visits... --</option>';
+            serviceSelect.disabled = true;
+            submitBtn.disabled = true;
+            serviceHelp.textContent = '';
+
+            try {
+                const response = await fetch(`/api/vehicle/${vehicleId}/services`);
+                if (!response.ok) throw new Error('Failed to fetch services');
+                
+                const services = await response.json();
+
+                if (services.length === 0) {
+                    serviceSelect.innerHTML = '<option value="" disabled selected>-- No service history found --</option>';
+                    serviceHelp.innerHTML = '⚠️ No past services found for this vehicle. Complaints must be linked to a past service. Please <a href="{{ url_for("book_service") }}" style="color:var(--m-blue-light);text-decoration:underline;">book a service</a> first.';
+                } else {
+                    serviceSelect.innerHTML = '<option value="" disabled selected>-- Select Service Visit --</option>';
+                    services.forEach(s => {
+                        const opt = document.createElement('option');
+                        opt.value = s.id;
+                        opt.textContent = `${s.service_type} — ${s.formatted_date}`;
+                        serviceSelect.appendChild(opt);
+                    });
+                    serviceSelect.disabled = false;
+                    serviceHelp.textContent = 'Select the service visit where this issue occurred or was noticed.';
+                }
+            } catch (err) {
+                console.error(err);
+                serviceSelect.innerHTML = '<option value="" disabled selected>-- Error loading services --</option>';
+                serviceHelp.textContent = '❌ Could not retrieve service visits. Please try again.';
+            }
+        });
+
+        serviceSelect.addEventListener('change', () => {
+            if (serviceSelect.value) {
+                submitBtn.disabled = false;
+            } else {
+                submitBtn.disabled = true;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

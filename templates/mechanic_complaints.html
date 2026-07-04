@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Mechanic Complaints Portal{% endblock %}
+
+{% block content %}
+<div class="dashboard section-sm">
+    <div class="container">
+        <!-- Page Header -->
+        <div class="dashboard-header">
+            <div>
+                <p class="label-uppercase" style="color:var(--m-red);">Staff Access</p>
+                <h1 class="display-md">CUSTOMER COMPLAINTS LOG</h1>
+                <p class="body-sm mt-sm">Review, track, and update status on issues flagged by customers.</p>
+            </div>
+            <div class="flex gap-md">
+                <a href="{{ url_for('mechanic_dashboard') }}" class="btn btn-sm btn-primary">GO TO WORK BOARD</a>
+            </div>
+        </div>
+
+        <div class="m-stripe m-stripe-thin mb-xl"><span></span><span></span><span></span></div>
+
+        <!-- Filters -->
+        <div class="mb-lg flex justify-between items-center" style="flex-wrap:wrap;gap:var(--sp-md);">
+            <div class="flex gap-sm" style="flex-wrap:wrap;">
+                <a href="{{ url_for('mechanic_complaints', status='all') }}" class="btn btn-sm {% if current_filter == 'all' %}btn-filled{% else %}btn-primary{% endif %}" style="height:36px;padding:8px 16px;">ALL</a>
+                <a href="{{ url_for('mechanic_complaints', status='pending') }}" class="btn btn-sm {% if current_filter == 'pending' %}btn-filled{% else %}btn-primary{% endif %}" style="height:36px;padding:8px 16px;color:var(--warning);border-color:var(--warning);">PENDING</a>
+                <a href="{{ url_for('mechanic_complaints', status='scheduled') }}" class="btn btn-sm {% if current_filter == 'scheduled' %}btn-filled{% else %}btn-primary{% endif %}" style="height:36px;padding:8px 16px;color:var(--info);border-color:var(--info);">SCHEDULED</a>
+                <a href="{{ url_for('mechanic_complaints', status='resolved') }}" class="btn btn-sm {% if current_filter == 'resolved' %}btn-filled{% else %}btn-primary{% endif %}" style="height:36px;padding:8px 16px;color:var(--success);border-color:var(--success);">RESOLVED</a>
+            </div>
+            <span class="caption">{{ complaints|length }} complaint(s) found</span>
+        </div>
+
+        <!-- Complaints List -->
+        {% if complaints %}
+            <div class="grid-2">
+                {% for complaint in complaints %}
+                    <div class="card" style="background:var(--surface-soft);border-color:{% if complaint.status == 'pending' %}var(--warning){% elif complaint.status == 'scheduled' %}var(--info){% else %}var(--success){% endif %};">
+                        <div class="flex justify-between items-start gap-md" style="flex-wrap:wrap;">
+                            <div style="flex:1;">
+                                <span class="complaint-status {{ complaint.status }}">{{ complaint.status }}</span>
+                                <h3 class="title-lg mt-sm" style="font-size:20px;color:var(--on-dark);">{{ complaint.part_name }}</h3>
+                                <p class="body-sm mt-xs" style="color:var(--body-strong);white-space:pre-wrap;">{{ complaint.description }}</p>
+                                
+                                <div class="mt-md" style="padding:var(--sp-sm);background:var(--surface-card);border:1px solid var(--hairline-strong);">
+                                    <p class="caption" style="color:var(--muted);font-weight:700;">VEHICLE & OWNER INFO:</p>
+                                    <p class="body-sm mt-xs" style="color:var(--on-dark);">
+                                        🚗 {{ complaint.service.vehicle.make }} {{ complaint.service.vehicle.model }} ({{ complaint.service.vehicle.registration_no }})
+                                    </p>
+                                    <p class="body-sm" style="color:var(--body);">
+                                        👤 Owner: {{ complaint.service.vehicle.owner.name }}
+                                        <br>📞 Contact: {{ complaint.service.vehicle.owner.phone or 'No phone number' }} · {{ complaint.service.vehicle.owner.email }}
+                                    </p>
+                                </div>
+                                
+                                <p class="caption mt-md">
+                                    📅 Reported: {{ complaint.created_at.strftime('%A, %B %d, %Y') }}
+                                    <br>🔧 Linked Past Service: {{ complaint.service.service_type }} ({{ complaint.service.service_date.strftime('%b %d, %Y') }})
+                                </p>
+                            </div>
+
+                            <!-- Status Actions -->
+                            <div style="min-width:180px;display:flex;flex-direction:column;gap:var(--sp-sm);">
+                                {% if complaint.status == 'resolved' %}
+                                    <p class="caption text-right" style="color:var(--success);font-weight:700;">✓ RESOLVED</p>
+                                {% else %}
+                                    <p class="caption text-right" style="color:var(--muted);font-weight:700;">UPDATE STATUS:</p>
+                                    <form method="POST" action="{{ url_for('update_complaint_status', complaint_id=complaint.id) }}">
+                                        <input type="hidden" name="status" value="pending">
+                                        <button type="submit" class="btn btn-sm btn-primary w-full {% if complaint.status == 'pending' %}hidden{% endif %}" style="border-color:var(--warning);color:var(--warning);font-size:11px;">SET PENDING</button>
+                                    </form>
+                                    <form method="POST" action="{{ url_for('update_complaint_status', complaint_id=complaint.id) }}">
+                                        <input type="hidden" name="status" value="scheduled">
+                                        <button type="submit" class="btn btn-sm btn-primary w-full {% if complaint.status == 'scheduled' %}hidden{% endif %}" style="border-color:var(--info);color:var(--info);font-size:11px;">SET SCHEDULED</button>
+                                    </form>
+                                    <form method="POST" action="{{ url_for('update_complaint_status', complaint_id=complaint.id) }}">
+                                        <input type="hidden" name="status" value="resolved">
+                                        <button type="submit" class="btn btn-sm btn-filled w-full" style="background:var(--success);border-color:var(--success);color:white;font-size:11px;">MARK RESOLVED</button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">🛡️</div>
+                <p class="body-md">No customer complaints matching the filter.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

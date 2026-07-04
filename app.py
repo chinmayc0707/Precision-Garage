@@ -5,7 +5,7 @@ from config import Config
 from models import db, User, Vehicle, Service, Complaint, Booking, Feedback, Job, Newsletter
 from forms import (
     LoginForm, RegisterForm, VehicleForm, BookingForm,
-    ComplaintForm, FeedbackForm, NewsletterForm, UpdateKmsForm,
+    ComplaintForm, GeneralComplaintForm, FeedbackForm, NewsletterForm, UpdateKmsForm,
     CompleteServiceForm, CancelBookingForm
 )
 
@@ -52,6 +52,19 @@ def inject_globals():
         "garage_open": Config.GARAGE_OPEN_TIME,
         "garage_close": Config.GARAGE_CLOSE_TIME,
     }
+
+
+# ── Decorators ───────────────────────────────────────────────────────
+from functools import wraps
+
+def mechanic_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or current_user.role != "mechanic":
+            flash("Access denied. Mechanics only.", "danger")
+            return redirect(url_for("dashboard"))
+        return f(*args, **kwargs)
+    return decorated_function
 
 
 # ── Public Routes ────────────────────────────────────────────────────
@@ -396,6 +409,123 @@ def add_complaint(service_id):
     return render_template("complaint.html", form=form, service=service)
 
 
+@app.route("/complaints", methods=["GET", "POST"])
+@login_required
+def complaints():
+    if current_user.role == "mechanic":
+        return redirect(url_for("mechanic_complaints"))
+
+    vehicles = Vehicle.query.filter_by(user_id=current_user.id).all()
+    form = GeneralComplaintForm()
+    
+    # Populate vehicle choices
+    form.vehicle_id.choices = [(v.id, f"{v.make} {v.model} ({v.registration_no})") for v in vehicles]
+    
+    # Populate service choices for validation
+    all_services = Service.query.join(Vehicle).filter(Vehicle.user_id == current_user.id).order_by(Service.service_date.desc()).all()
+    form.service_id.choices = [(s.id, f"{s.service_type} ({s.vehicle.make} {s.vehicle.model}) — {s.service_date.strftime('%b %d, %Y')}") for s in all_services]
+
+    if form.validate_on_submit():
+        selected_vehicle = Vehicle.query.get(form.vehicle_id.data)
+        selected_service = Service.query.get(form.service_id.data)
+        
+        if not selected_vehicle or selected_vehicle.user_id != current_user.id:
+            flash("Invalid vehicle selection.", "danger")
+            return redirect(url_for("complaints"))
+            
+        if not selected_service or selected_service.vehicle_id != selected_vehicle.id:
+            flash("Invalid service visit selection.", "danger")
+            return redirect(url_for("complaints"))
+
+        complaint = Complaint(
+            service_id=selected_service.id,
+            part_name=form.part_name.data,
+            description=form.description.data,
+            status="pending"
+        )
+        db.session.add(complaint)
+        db.session.commit()
+        flash(f"Complaint for '{form.part_name.data}' registered successfully.", "success")
+        return redirect(url_for("complaints"))
+
+    active_complaints = Complaint.query.join(Service).join(Vehicle).filter(
+        Vehicle.user_id == current_user.id,
+        Complaint.status.in_(["pending", "scheduled"])
+    ).order_by(Complaint.created_at.desc()).all()
+
+    resolved_complaints = Complaint.query.join(Service).join(Vehicle).filter(
+        Vehicle.user_id == current_user.id,
+        Complaint.status == "resolved"
+    ).order_by(Complaint.created_at.desc()).all()
+
+    return render_template(
+        "complaints.html",
+        form=form,
+        active_complaints=active_complaints,
+        resolved_complaints=resolved_complaints,
+        vehicles=vehicles
+    )
+
+
+@app.route("/api/vehicle/<int:vehicle_id>/services")
+@login_required
+def get_vehicle_services(vehicle_id):
+    vehicle = Vehicle.query.get_or_404(vehicle_id)
+    if vehicle.user_id != current_user.id and current_user.role != "mechanic":
+        return jsonify({"error": "Unauthorized"}), 403
+    services = Service.query.filter_by(vehicle_id=vehicle.id).order_by(Service.service_date.desc()).all()
+    return jsonify([
+        {
+            "id": s.id,
+            "service_type": s.service_type,
+            "date": s.service_date.strftime("%Y-%m-%d"),
+            "formatted_date": s.service_date.strftime("%B %d, %Y")
+        } for s in services
+    ])
+
+
+@app.route("/mechanic/complaints")
+@login_required
+@mechanic_required
+def mechanic_complaints():
+    status_filter = request.args.get("status", "all")
+    query = Complaint.query.join(Service).join(Vehicle)
+    
+    if status_filter != "all":
+        query = query.filter(Complaint.status == status_filter)
+        
+    complaints_list = query.order_by(Complaint.created_at.desc()).all()
+    
+    return render_template(
+        "mechanic_complaints.html",
+        complaints=complaints_list,
+        current_filter=status_filter
+    )
+
+
+@app.route("/mechanic/complaint/<int:complaint_id>/update-status", methods=["POST"])
+@login_required
+@mechanic_required
+def update_complaint_status(complaint_id):
+    complaint = Complaint.query.get_or_404(complaint_id)
+    
+    if complaint.status == "resolved":
+        flash("Resolved complaints cannot be modified.", "danger")
+        return redirect(url_for("mechanic_complaints"))
+        
+    new_status = request.form.get("status")
+    
+    if new_status not in ["pending", "scheduled", "resolved"]:
+        flash("Invalid status selection.", "danger")
+        return redirect(url_for("mechanic_complaints"))
+        
+    complaint.status = new_status
+    db.session.commit()
+    
+    flash(f"Complaint status for '{complaint.part_name}' updated to {new_status}.", "success")
+    return redirect(url_for("mechanic_complaints"))
+
+
 # ── Feedback ─────────────────────────────────────────────────────────
 @app.route("/feedback", methods=["GET", "POST"])
 @login_required
@@ -456,16 +586,6 @@ def subscribe_newsletter():
 
 
 # ── Mechanic / Service Man Routes ────────────────────────────────────
-from functools import wraps
-
-def mechanic_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or current_user.role != "mechanic":
-            flash("Access denied. Mechanics only.", "danger")
-            return redirect(url_for("dashboard"))
-        return f(*args, **kwargs)
-    return decorated_function
 
 
 @app.route("/mechanic/dashboard")
