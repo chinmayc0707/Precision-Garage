@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import (
     StringField, PasswordField, TextAreaField, IntegerField,
-    SelectField, DateField, HiddenField, FloatField
+    SelectField, DateField, HiddenField, FloatField, SubmitField
 )
 from wtforms.validators import (
     DataRequired, Email, Length, EqualTo, NumberRange, Optional, ValidationError
@@ -84,4 +84,4 @@ class CompleteServiceForm(FlaskForm):
 
 
 class DeleteAccountForm(FlaskForm):
-    pass
+    submit = SubmitField('Delete Account')
