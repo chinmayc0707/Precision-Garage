@@ -158,41 +158,6 @@
     </div>
 </section>
 
-<!-- ── M Stripe ────────────────────────────────────────────────────── -->
-<div class="m-stripe"><span></span><span></span><span></span></div>
-
-<!-- ── Featured Jobs ───────────────────────────────────────────────── -->
-<section class="section" id="featured-jobs" style="background:var(--surface-soft);">
-    <div class="container text-center">
-        <div class="fade-up">
-            <p class="label-uppercase" style="color:var(--muted);">Join Our Team</p>
-            <h2 class="display-lg mt-sm mb-xl">FEATURED POSITIONS</h2>
-        </div>
-
-        {% if featured_jobs %}
-        <div class="grid-3 fade-up">
-            {% for job in featured_jobs %}
-            <div class="job-card featured">
-                <span class="job-type-badge">{{ job.job_type }}</span>
-                <h3 class="title-lg mt-sm">{{ job.title }}</h3>
-                <p class="body-sm mt-sm">{{ job.description[:120] }}...</p>
-                <p class="caption mt-md">📍 {{ job.location }}</p>
-            </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <div class="fade-up">
-            <p class="body-md" style="color:var(--muted);">No featured positions at the moment. Check back soon!</p>
-        </div>
-        {% endif %}
-
-        <div class="mt-xl fade-up">
-            <a href="{{ url_for('job_board') }}" class="text-link">VIEW ALL POSITIONS <span class="arrow">→</span></a>
-        </div>
-    </div>
-</section>
-
-<!-- ── M Stripe ────────────────────────────────────────────────────── -->
 <div class="m-stripe"><span></span><span></span><span></span></div>
 
 <!-- ── Testimonials ────────────────────────────────────────────────── -->
