@@ -56,6 +56,16 @@
 }
 
 /* ── Reset & Base ──────────────────────────────────────────────────── */
+::selection {
+    background: #ffffff;
+    color: #000000;
+}
+
+::-moz-selection {
+    background: #ffffff;
+    color: #000000;
+}
+
 *,
 *::before,
 *::after {
