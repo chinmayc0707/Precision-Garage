@@ -611,6 +611,29 @@ ul, ol {
     gap: var(--sp-xs);
 }
 
+.hero-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0%;
+    height: 3px;
+    background: linear-gradient(to right, var(--m-blue-light), var(--m-blue-dark), var(--m-red));
+    z-index: 10;
+}
+
+@keyframes hero-progress-anim {
+    from {
+        width: 0%;
+    }
+    to {
+        width: 100%;
+    }
+}
+
+.hero-progress.active {
+    animation: hero-progress-anim 5000ms linear forwards;
+}
+
 /* ── Cards ─────────────────────────────────────────────────────────── */
 .card {
     background: var(--surface-card);
