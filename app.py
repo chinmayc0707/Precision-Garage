@@ -73,9 +73,11 @@ def index():
     # Fetch latest feedbacks for testimonials
     feedbacks = Feedback.query.order_by(Feedback.created_at.desc()).limit(6).all()
     # Stats
-    total_services = Service.query.count()
-    total_users = User.query.count()
-    avg_rating = db.session.query(db.func.avg(Feedback.rating)).scalar() or 0
+    total_services = Service.query.count() + app.config.get("BASE_VEHICLES_SERVICED", 1250)
+    total_users = User.query.count() + app.config.get("BASE_HAPPY_CLIENTS", 340)
+    avg_rating = db.session.query(db.func.avg(Feedback.rating)).scalar() or 4.8
+    years_experience = app.config.get("YEARS_EXPERIENCE", 8)
+
     total_feedbacks = Feedback.query.count()
     newsletter_form = NewsletterForm()
     return render_template(
@@ -84,6 +86,7 @@ def index():
         total_services=total_services,
         total_users=total_users,
         avg_rating=round(avg_rating, 1),
+        years_experience=years_experience,
         total_feedbacks=total_feedbacks,
         newsletter_form=newsletter_form,
     )
@@ -91,15 +94,18 @@ def index():
 
 @app.route("/about")
 def about():
-    total_services = Service.query.count()
-    total_users = User.query.count()
-    avg_rating = db.session.query(db.func.avg(Feedback.rating)).scalar() or 0
+    total_services = Service.query.count() + app.config.get("BASE_VEHICLES_SERVICED", 1250)
+    total_users = User.query.count() + app.config.get("BASE_HAPPY_CLIENTS", 340)
+    avg_rating = db.session.query(db.func.avg(Feedback.rating)).scalar() or 4.8
+    years_experience = app.config.get("YEARS_EXPERIENCE", 8)
+
     feedbacks = Feedback.query.order_by(Feedback.created_at.desc()).limit(10).all()
     return render_template(
         "about.html",
         total_services=total_services,
         total_users=total_users,
         avg_rating=round(avg_rating, 1),
+        years_experience=years_experience,
         feedbacks=feedbacks,
     )
 
