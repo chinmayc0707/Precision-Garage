@@ -15,10 +15,14 @@ class User(UserMixin, db.Model):
     phone = db.Column(db.String(20), nullable=True)
     password_hash = db.Column(db.String(256), nullable=False)
     role = db.Column(db.String(20), default="customer") # customer, mechanic
+    is_verified = db.Column(db.Boolean, default=True)  # False for new mechanic registrations
+    verified_by = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    verified_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     vehicles = db.relationship("Vehicle", backref="owner", lazy=True, cascade="all, delete-orphan")
     feedbacks = db.relationship("Feedback", backref="user", lazy=True)
+    verifier = db.relationship("User", remote_side=[id], foreign_keys=[verified_by])
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)

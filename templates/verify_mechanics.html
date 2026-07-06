@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Verify Mechanics{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="container">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <div>
+                <p class="label-uppercase" style="color:var(--m-red);">Staff Access</p>
+                <h1 class="display-md">VERIFY SERVICE MEN</h1>
+                <p class="body-sm mt-sm">Approve or reject new mechanic registration requests.</p>
+            </div>
+            <div class="flex gap-md">
+                <a href="{{ url_for('mechanic_dashboard') }}" class="btn btn-sm btn-primary" style="height:36px;padding:8px 16px;">← BACK TO DASHBOARD</a>
+            </div>
+        </div>
+
+        <div class="m-stripe m-stripe-thin mb-xl"><span></span><span></span><span></span></div>
+
+        <!-- Pending Requests -->
+        {% if pending %}
+            <div class="mb-md">
+                <span class="caption" style="color:var(--warning);">⏳ {{ pending|length }} pending verification request(s)</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:var(--sp-md);">
+                {% for user in pending %}
+                    <div class="card" style="background:var(--surface-soft);border-color:var(--warning);">
+                        <div class="flex justify-between items-start" style="flex-wrap:wrap;gap:var(--sp-md);">
+                            <!-- User Info -->
+                            <div>
+                                <span class="booking-status pending" style="margin-bottom:var(--sp-xs);">PENDING VERIFICATION</span>
+                                <h3 class="title-lg" style="margin-top:4px;">{{ user.name }}</h3>
+                                <p class="body-sm text-white mt-xs">
+                                    📧 {{ user.email }}
+                                    {% if user.phone %} · 📞 {{ user.phone }}{% endif %}
+                                </p>
+                                <p class="caption mt-sm" style="color:var(--muted);">
+                                    📅 Registered: {{ user.created_at.strftime('%A, %B %d, %Y at %I:%M %p') }}
+                                </p>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="flex flex-col gap-sm text-right" style="min-width:180px;">
+                                <form method="POST" action="{{ url_for('verify_mechanic', user_id=user.id) }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-filled btn-sm w-full" style="border-color:var(--success);background:var(--success);color:white;">✓ APPROVE</button>
+                                </form>
+                                <form method="POST" action="{{ url_for('reject_mechanic', user_id=user.id) }}" onsubmit="return confirm('Are you sure you want to reject this registration? This will permanently delete this account.');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-danger btn-sm w-full">✕ REJECT</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">✅</div>
+                <p class="body-md">No pending verification requests.</p>
+                <p class="body-sm mt-sm" style="color:var(--muted);">All mechanic registrations have been reviewed.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

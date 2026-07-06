@@ -27,6 +27,12 @@
                     {% if current_user.role == 'mechanic' %}
                     <a href="{{ url_for('mechanic_dashboard') }}" class="{% if request.endpoint == 'mechanic_dashboard' %}active{% endif %}">Dashboard</a>
                     <a href="{{ url_for('mechanic_complaints') }}" class="{% if request.endpoint == 'mechanic_complaints' %}active{% endif %}">Complaints Log</a>
+                    <a href="{{ url_for('verify_requests') }}" class="{% if request.endpoint == 'verify_requests' %}active{% endif %}" style="position:relative;">
+                        Verify Mechanics
+                        {% if pending_mechanics_count > 0 %}
+                        <span style="position:absolute;top:-6px;right:-12px;background:var(--m-red);color:white;font-size:11px;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;padding:0 4px;">{{ pending_mechanics_count }}</span>
+                        {% endif %}
+                    </a>
                     {% else %}
                     <a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}">Dashboard</a>
                     <a href="{{ url_for('complaints') }}" class="{% if request.endpoint == 'complaints' %}active{% endif %}">Complaints</a>
@@ -62,6 +68,12 @@
             {% if current_user.role == 'mechanic' %}
             <a href="{{ url_for('mechanic_dashboard') }}">Dashboard</a>
             <a href="{{ url_for('mechanic_complaints') }}">Complaints Log</a>
+            <a href="{{ url_for('verify_requests') }}">
+                Verify Mechanics
+                {% if pending_mechanics_count > 0 %}
+                <span style="background:var(--m-red);color:white;font-size:11px;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;padding:0 4px;margin-left:8px;">{{ pending_mechanics_count }}</span>
+                {% endif %}
+            </a>
             {% else %}
             <a href="{{ url_for('dashboard') }}">Dashboard</a>
             <a href="{{ url_for('complaints') }}">Complaints</a>

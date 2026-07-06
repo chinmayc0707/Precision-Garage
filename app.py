@@ -1,6 +1,7 @@
 from datetime import datetime, date
 from flask import Flask, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from flask_wtf.csrf import generate_csrf
 from config import Config
 from models import db, User, Vehicle, Service, Complaint, Booking, Feedback, Newsletter
 from forms import (
@@ -11,6 +12,9 @@ from forms import (
 
 app = Flask(__name__)
 app.config.from_object(Config)
+
+# Make csrf_token() available in all Jinja templates
+app.jinja_env.globals['csrf_token'] = generate_csrf
 
 db.init_app(app)
 
@@ -47,10 +51,14 @@ def format_indian(n):
 # ── Context Processors ──────────────────────────────────────────────
 @app.context_processor
 def inject_globals():
+    pending_mechanics_count = 0
+    if current_user.is_authenticated and current_user.role == "mechanic" and current_user.is_verified:
+        pending_mechanics_count = User.query.filter_by(role="mechanic", is_verified=False).count()
     return {
         "current_date": datetime.now(),
         "garage_open": Config.GARAGE_OPEN_TIME,
         "garage_close": Config.GARAGE_CLOSE_TIME,
+        "pending_mechanics_count": pending_mechanics_count,
     }
 
 
@@ -163,16 +171,32 @@ def register():
         if User.query.filter_by(email=form.email.data).first():
             flash("Email already registered. Please login.", "warning")
             return redirect(url_for("login"))
+
+        is_mechanic = form.role.data == "mechanic"
+        # Auto-verify if this is the first mechanic (bootstrapping)
+        auto_verify = is_mechanic and User.query.filter_by(role="mechanic", is_verified=True).count() == 0
+
         user = User(
             name=form.name.data,
             email=form.email.data,
             phone=form.phone.data,
             role=form.role.data,
+            is_verified=not is_mechanic or auto_verify,
         )
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
-        flash("Account created successfully! Please login.", "success")
+
+        if is_mechanic and not auto_verify:
+            flash(
+                "Your mechanic account has been created but requires verification "
+                "by an existing service man. You will be able to login once approved.",
+                "info",
+            )
+        elif is_mechanic and auto_verify:
+            flash("Account created! As the first service man, you are auto-verified. Please login.", "success")
+        else:
+            flash("Account created successfully! Please login.", "success")
         return redirect(url_for("login"))
     return render_template("register.html", form=form)
 
@@ -185,6 +209,14 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user and user.check_password(form.password.data):
+            # Block unverified mechanics
+            if user.role == "mechanic" and not user.is_verified:
+                flash(
+                    "Your mechanic account is pending verification by an existing service man. "
+                    "Please wait for approval before logging in.",
+                    "warning",
+                )
+                return render_template("login.html", form=form)
             login_user(user)
             next_page = request.args.get("next")
             flash("Welcome back!", "success")
@@ -705,6 +737,54 @@ def complete_booking(booking_id):
     return render_template("complete_service.html", form=form, booking=booking, complaints=active_complaints)
 
 
+
+# ── Mechanic Verification Routes ─────────────────────────────────────
+@app.route("/mechanic/verify-requests")
+@login_required
+@mechanic_required
+def verify_requests():
+    if not current_user.is_verified:
+        flash("You must be a verified mechanic to access this page.", "danger")
+        return redirect(url_for("mechanic_dashboard"))
+    pending = User.query.filter_by(role="mechanic", is_verified=False).order_by(User.created_at.desc()).all()
+    return render_template("verify_mechanics.html", pending=pending)
+
+
+@app.route("/mechanic/verify/<int:user_id>", methods=["POST"])
+@login_required
+@mechanic_required
+def verify_mechanic(user_id):
+    if not current_user.is_verified:
+        flash("You must be a verified mechanic to perform this action.", "danger")
+        return redirect(url_for("mechanic_dashboard"))
+    user = User.query.get_or_404(user_id)
+    if user.role != "mechanic" or user.is_verified:
+        flash("Invalid verification request.", "warning")
+        return redirect(url_for("verify_requests"))
+    user.is_verified = True
+    user.verified_by = current_user.id
+    user.verified_at = datetime.utcnow()
+    db.session.commit()
+    flash(f"{user.name} has been verified as a service man.", "success")
+    return redirect(url_for("verify_requests"))
+
+
+@app.route("/mechanic/reject/<int:user_id>", methods=["POST"])
+@login_required
+@mechanic_required
+def reject_mechanic(user_id):
+    if not current_user.is_verified:
+        flash("You must be a verified mechanic to perform this action.", "danger")
+        return redirect(url_for("mechanic_dashboard"))
+    user = User.query.get_or_404(user_id)
+    if user.role != "mechanic" or user.is_verified:
+        flash("Invalid rejection request.", "warning")
+        return redirect(url_for("verify_requests"))
+    name = user.name
+    db.session.delete(user)
+    db.session.commit()
+    flash(f"Registration request from {name} has been rejected.", "info")
+    return redirect(url_for("verify_requests"))
 
 
 # ── App Init ─────────────────────────────────────────────────────────
