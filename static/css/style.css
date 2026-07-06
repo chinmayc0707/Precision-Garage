@@ -576,18 +576,14 @@ ul, ol {
     max-width: 600px;
 }
 
-.hero-controls {
+.hero-dots {
     position: absolute;
     bottom: var(--sp-xl);
-    right: var(--sp-xxl);
-    display: flex;
-    align-items: center;
-    gap: var(--sp-md);
-}
-
-.hero-dots {
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
     gap: var(--sp-xs);
+    z-index: 15;
 }
 
 .hero-dot {
@@ -606,9 +602,20 @@ ul, ol {
     transform: scale(1.2);
 }
 
-.hero-arrows {
-    display: flex;
-    gap: var(--sp-xs);
+.hero-prev {
+    position: absolute;
+    left: var(--sp-lg);
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 15;
+}
+
+.hero-next {
+    position: absolute;
+    right: var(--sp-lg);
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 15;
 }
 
 .hero-progress {
@@ -1497,10 +1504,15 @@ ul, ol {
         margin-bottom: var(--sp-xl);
     }
 
-    .hero-controls {
-        left: 50%;
-        right: auto;
-        transform: translateX(-50%);
+    .hero-prev {
+        left: var(--sp-md);
+    }
+
+    .hero-next {
+        right: var(--sp-md);
+    }
+
+    .hero-dots {
         bottom: var(--sp-md);
     }
 
@@ -1553,6 +1565,21 @@ ul, ol {
 
     .hero-content h1 {
         font-size: 34px;
+    }
+
+    .btn-icon.hero-prev,
+    .btn-icon.hero-next {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+    }
+
+    .hero-prev {
+        left: var(--sp-xs);
+    }
+
+    .hero-next {
+        right: var(--sp-xs);
     }
 }
 
