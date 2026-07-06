@@ -912,22 +912,6 @@ ul, ol {
     }
 }
 
-/* ── Newsletter ────────────────────────────────────────────────────── */
-.newsletter-band {
-    background: var(--surface-soft);
-    border-top: 1px solid var(--hairline);
-    border-bottom: 1px solid var(--hairline);
-}
-
-.newsletter-form {
-    display: flex;
-    gap: var(--sp-md);
-    max-width: 500px;
-}
-
-.newsletter-form .form-input {
-    flex: 1;
-}
 
 /* ── Service Cards ─────────────────────────────────────────────────── */
 .service-card {
@@ -1484,11 +1468,6 @@ ul, ol {
     .footer-grid {
         grid-template-columns: 1fr;
     }
-
-    .newsletter-form {
-        flex-direction: column;
-    }
-
     .footer-bottom {
         flex-direction: column;
         gap: var(--sp-sm);

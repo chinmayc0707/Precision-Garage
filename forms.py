@@ -77,10 +77,6 @@ class FeedbackForm(FlaskForm):
     comment = TextAreaField("Your Feedback", validators=[Optional(), Length(max=1000)])
 
 
-class NewsletterForm(FlaskForm):
-    email = StringField("Email", validators=[DataRequired(), Email()])
-
-
 class UpdateKmsForm(FlaskForm):
     current_kms = IntegerField("Current Kilometers", validators=[DataRequired(), NumberRange(min=0)])
 
