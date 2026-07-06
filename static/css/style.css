@@ -208,9 +208,9 @@ ul, ol {
     flex: 1;
 }
 
-.m-stripe span:nth-child(1) { background: var(--m-blue-light); }
-.m-stripe span:nth-child(2) { background: var(--m-blue-dark); }
-.m-stripe span:nth-child(3) { background: var(--m-red); }
+.m-stripe span:nth-child(1) { background: #3c3c3c; }
+.m-stripe span:nth-child(2) { background: #3c3c3c; }
+.m-stripe span:nth-child(3) { background: #3c3c3c; }
 
 .m-stripe-thin {
     height: 2px;
