@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Pyramid Garage{% endblock %} — Premium Auto Service</title>
-    <meta name="description" content="{% block meta_desc %}Premium automotive service and repair. Expert technicians, state-of-the-art facility. Book your service today.{% endblock %}">
+    <meta name="description"
+        content="{% block meta_desc %}Premium automotive service and repair. Expert technicians, state-of-the-art facility. Book your service today.{% endblock %}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', v='1.0.1') }}">
     {% block head %}{% endblock %}
 </head>
+
 <body>
     <!-- ── Top Navigation ──────────────────────────────────────────── -->
     <nav class="top-nav" id="top-nav">
@@ -16,29 +19,36 @@
                 <span class="logo-m">
                     <span></span><span></span><span></span>
                 </span>
-                PYRAMID GARAGE
+                PRECISION GARAGE
             </a>
 
             <div class="nav-links">
                 <a href="{{ url_for('index') }}" class="{% if request.endpoint == 'index' %}active{% endif %}">Home</a>
                 <a href="{{ url_for('about') }}" class="{% if request.endpoint == 'about' %}active{% endif %}">About</a>
-                <a href="{{ url_for('services') }}" class="{% if request.endpoint == 'services' %}active{% endif %}">Services</a>
+                <a href="{{ url_for('services') }}"
+                    class="{% if request.endpoint == 'services' %}active{% endif %}">Services</a>
                 {% if current_user.is_authenticated %}
-                    {% if current_user.role == 'mechanic' %}
-                    <a href="{{ url_for('mechanic_dashboard') }}" class="{% if request.endpoint == 'mechanic_dashboard' %}active{% endif %}">Dashboard</a>
-                    <a href="{{ url_for('mechanic_complaints') }}" class="{% if request.endpoint == 'mechanic_complaints' %}active{% endif %}">Complaints Log</a>
-                    {% else %}
-                    <a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}">Dashboard</a>
-                    <a href="{{ url_for('complaints') }}" class="{% if request.endpoint == 'complaints' %}active{% endif %}">Complaints</a>
-                    {% endif %}
+                {% if current_user.role == 'mechanic' %}
+                <a href="{{ url_for('mechanic_dashboard') }}"
+                    class="{% if request.endpoint == 'mechanic_dashboard' %}active{% endif %}">Dashboard</a>
+                <a href="{{ url_for('mechanic_complaints') }}"
+                    class="{% if request.endpoint == 'mechanic_complaints' %}active{% endif %}">Complaints Log</a>
+                {% else %}
+                <a href="{{ url_for('dashboard') }}"
+                    class="{% if request.endpoint == 'dashboard' %}active{% endif %}">Dashboard</a>
+                <a href="{{ url_for('complaints') }}"
+                    class="{% if request.endpoint == 'complaints' %}active{% endif %}">Complaints</a>
+                {% endif %}
                 {% endif %}
             </div>
 
             <div class="nav-right">
                 <span class="nav-date" id="live-date"></span>
                 {% if current_user.is_authenticated %}
-                <a href="{{ url_for('dashboard') }}" class="btn btn-sm btn-primary">{{ current_user.name.split()[0] }}</a>
-                <a href="{{ url_for('logout') }}" class="btn btn-sm btn-primary" style="border-color: var(--hairline);">Logout</a>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-sm btn-primary">{{ current_user.name.split()[0]
+                    }}</a>
+                <a href="{{ url_for('logout') }}" class="btn btn-sm btn-primary"
+                    style="border-color: var(--hairline);">Logout</a>
                 {% else %}
                 <a href="{{ url_for('login') }}" class="btn btn-sm btn-primary">Login</a>
                 {% endif %}
@@ -59,13 +69,13 @@
         <a href="{{ url_for('about') }}">About</a>
         <a href="{{ url_for('services') }}">Services</a>
         {% if current_user.is_authenticated %}
-            {% if current_user.role == 'mechanic' %}
-            <a href="{{ url_for('mechanic_dashboard') }}">Dashboard</a>
-            <a href="{{ url_for('mechanic_complaints') }}">Complaints Log</a>
-            {% else %}
-            <a href="{{ url_for('dashboard') }}">Dashboard</a>
-            <a href="{{ url_for('complaints') }}">Complaints</a>
-            {% endif %}
+        {% if current_user.role == 'mechanic' %}
+        <a href="{{ url_for('mechanic_dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('mechanic_complaints') }}">Complaints Log</a>
+        {% else %}
+        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('complaints') }}">Complaints</a>
+        {% endif %}
         {% endif %}
         {% if current_user.is_authenticated %}
         <a href="{{ url_for('feedback') }}">Feedback</a>
@@ -131,13 +141,15 @@
                         <p class="body-sm" style="color:var(--body);padding:4px 0;">Drop-off: 10:00 AM</p>
                         <p class="body-sm" style="color:var(--body);padding:4px 0;">Pick-up: 6:00 PM</p>
                         <p class="body-sm" style="color:var(--body);padding:4px 0;">Max 7 vehicles / day</p>
-                        <p class="body-sm" style="color:var(--muted);padding:4px 0;margin-top:8px;">Service every 2,000 km<br>or every 2 months</p>
+                        <p class="body-sm" style="color:var(--muted);padding:4px 0;margin-top:8px;">Service every 2,000
+                            km<br>or every 2 months</p>
                     </div>
                 </div>
                 <div>
                     <h4 class="footer-heading">Contact</h4>
                     <div class="footer-links">
-                        <p class="body-sm" style="color:var(--body);padding:4px 0;">📍 Near Arekere Gate bus stop, 1st Main Samrat Layout </p>
+                        <p class="body-sm" style="color:var(--body);padding:4px 0;">📍 Near Arekere Gate bus stop, 1st
+                            Main Samrat Layout </p>
                         <p class="body-sm" style="color:var(--body);padding:4px 0;">📞 +91 9845788680</p>
                     </div>
                 </div>
@@ -153,4 +165,5 @@
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     {% block scripts %}{% endblock %}
 </body>
+
 </html>
