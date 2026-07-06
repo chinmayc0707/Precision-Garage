@@ -20,6 +20,7 @@ function initHeroCarousel() {
     const dots = document.querySelectorAll('.hero-dot');
     const prevBtn = document.querySelector('.hero-prev');
     const nextBtn = document.querySelector('.hero-next');
+    const progressBar = document.querySelector('.hero-progress');
 
     if (slides.length === 0) return;
 
@@ -33,6 +34,13 @@ function initHeroCarousel() {
         currentSlide = (index + slides.length) % slides.length;
         slides[currentSlide].classList.add('active');
         if (dots[currentSlide]) dots[currentSlide].classList.add('active');
+
+        // Reset and restart progress bar animation
+        if (progressBar) {
+            progressBar.classList.remove('active');
+            void progressBar.offsetWidth; // Force DOM reflow to restart CSS animation
+            progressBar.classList.add('active');
+        }
     }
 
     function nextSlide() {

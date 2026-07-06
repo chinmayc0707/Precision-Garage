@@ -200,7 +200,7 @@ ul, ol {
 .m-stripe {
     display: flex;
     width: 100%;
-    height: 4px;
+    height: 1px;
     flex-shrink: 0;
 }
 
@@ -208,9 +208,9 @@ ul, ol {
     flex: 1;
 }
 
-.m-stripe span:nth-child(1) { background: var(--m-blue-light); }
-.m-stripe span:nth-child(2) { background: var(--m-blue-dark); }
-.m-stripe span:nth-child(3) { background: var(--m-red); }
+.m-stripe span:nth-child(1) { background: #3c3c3c; }
+.m-stripe span:nth-child(2) { background: #3c3c3c; }
+.m-stripe span:nth-child(3) { background: #3c3c3c; }
 
 .m-stripe-thin {
     height: 2px;
@@ -611,6 +611,29 @@ ul, ol {
     gap: var(--sp-xs);
 }
 
+.hero-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0%;
+    height: 3px;
+    background: linear-gradient(to right, var(--m-blue-light), var(--m-blue-dark), var(--m-red));
+    z-index: 10;
+}
+
+@keyframes hero-progress-anim {
+    from {
+        width: 0%;
+    }
+    to {
+        width: 100%;
+    }
+}
+
+.hero-progress.active {
+    animation: hero-progress-anim 5000ms linear forwards;
+}
+
 /* ── Cards ─────────────────────────────────────────────────────────── */
 .card {
     background: var(--surface-card);
@@ -936,7 +959,7 @@ ul, ol {
 }
 
 .service-card:hover::before {
-    height: 4px;
+    height: 1px;
 }
 
 .service-card:hover {
