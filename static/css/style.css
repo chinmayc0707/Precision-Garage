@@ -526,11 +526,13 @@ ul, ol {
     width: 100%;
     height: 100%;
     opacity: 0;
+    pointer-events: none;
     transition: opacity var(--transition-slow);
 }
 
 .hero-slide.active {
     opacity: 1;
+    pointer-events: auto;
 }
 
 .hero-slide img {
@@ -1530,27 +1532,15 @@ ul, ol {
 }
 
 
-/* Hero selection fix */
-.hero-slide ::selection {
+/* Hero selection styling */
+.hero::selection,
+.hero *::selection {
     background: #ffffff !important;
     color: #000000 !important;
 }
 
-.hero-slide ::-moz-selection {
-    background: #ffffff !important;
-    color: #000000 !important;
-}
-
-.hero-content h1::selection,
-.hero-content p::selection,
-.hero-content .label-uppercase::selection {
-    background: #ffffff !important;
-    color: #000000 !important;
-}
-
-.hero-content h1::-moz-selection,
-.hero-content p::-moz-selection,
-.hero-content .label-uppercase::-moz-selection {
+.hero::-moz-selection,
+.hero *::-moz-selection {
     background: #ffffff !important;
     color: #000000 !important;
 }
