@@ -1461,22 +1461,47 @@ ul, ol {
         display: none;
     }
 
+    .nav-right {
+        display: none;
+    }
+
+    .nav-logo {
+        white-space: nowrap;
+        font-size: 16px;
+        gap: var(--sp-xs);
+    }
+
+    .nav-logo .logo-m {
+        padding: 2px 4px;
+    }
+
+    .nav-logo .logo-m span {
+        width: 3px;
+        height: 12px;
+    }
+
     .hamburger {
         display: flex;
     }
 
     .hero {
-        height: 70vh;
-        min-height: 400px;
+        height: 75vh;
+        min-height: 450px;
     }
 
     .hero-overlay {
         padding: var(--sp-xl) var(--sp-lg);
     }
 
+    .hero-content {
+        margin-bottom: var(--sp-xl);
+    }
+
     .hero-controls {
-        right: var(--sp-lg);
-        bottom: var(--sp-lg);
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        bottom: var(--sp-md);
     }
 
     .grid-3,
@@ -1527,6 +1552,12 @@ ul, ol {
     }
 
     .hero-content h1 {
-        font-size: 36px;
+        font-size: 34px;
+    }
+}
+
+@media (max-width: 360px) {
+    .nav-logo {
+        font-size: 14px;
     }
 }
