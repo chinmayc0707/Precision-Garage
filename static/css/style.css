@@ -1528,3 +1528,29 @@ ul, ol {
         font-size: 36px;
     }
 }
+
+
+/* Hero selection fix */
+.hero-slide ::selection {
+    background: #ffffff !important;
+    color: #000000 !important;
+}
+
+.hero-slide ::-moz-selection {
+    background: #ffffff !important;
+    color: #000000 !important;
+}
+
+.hero-content h1::selection,
+.hero-content p::selection,
+.hero-content .label-uppercase::selection {
+    background: #ffffff !important;
+    color: #000000 !important;
+}
+
+.hero-content h1::-moz-selection,
+.hero-content p::-moz-selection,
+.hero-content .label-uppercase::-moz-selection {
+    background: #ffffff !important;
+    color: #000000 !important;
+}
