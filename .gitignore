@@ -5,3 +5,4 @@ instance/
 .env
 *.db
 .DS_Store
+.opencode
