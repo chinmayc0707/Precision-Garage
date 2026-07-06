@@ -71,19 +71,19 @@
         </div>
         <div class="grid-4 fade-up">
             <div class="metric-item">
-                <div class="metric-value" data-count="{{ total_services if total_services > 0 else 1250 }}" data-suffix="+">0</div>
+                <div class="metric-value" data-count="{{ total_services }}" data-suffix="+">0</div>
                 <div class="metric-label">Vehicles Serviced</div>
             </div>
             <div class="metric-item">
-                <div class="metric-value" data-count="{{ total_users if total_users > 0 else 340 }}" data-suffix="+">0</div>
+                <div class="metric-value" data-count="{{ total_users }}" data-suffix="+">0</div>
                 <div class="metric-label">Happy Clients</div>
             </div>
             <div class="metric-item">
-                <div class="metric-value" data-count="{{ avg_rating if avg_rating > 0 else 4.8|int }}" data-suffix="/5">0</div>
+                <div class="metric-value" data-count="{{ avg_rating }}" data-suffix="/5">0</div>
                 <div class="metric-label">Average Rating</div>
             </div>
             <div class="metric-item">
-                <div class="metric-value" data-count="8" data-suffix="+">0</div>
+                <div class="metric-value" data-count="{{ years_experience }}" data-suffix="+">0</div>
                 <div class="metric-label">Years Experience</div>
             </div>
         </div>
