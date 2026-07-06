@@ -6,7 +6,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     initHeroCarousel();
     initStarRating();
-    initNewsletterForm();
     initScrollAnimations();
     initMobileNav();
     initFlashMessages();
@@ -106,43 +105,6 @@ function initStarRating() {
     });
 }
 
-
-/* ── Newsletter AJAX ───────────────────────────────────────────────── */
-function initNewsletterForm() {
-    const form = document.getElementById('newsletter-form');
-    if (!form) return;
-
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const formData = new FormData(form);
-        const submitBtn = form.querySelector('button[type="submit"]');
-        const originalText = submitBtn.textContent;
-
-        submitBtn.textContent = 'SUBSCRIBING...';
-        submitBtn.disabled = true;
-
-        try {
-            const response = await fetch('/newsletter', {
-                method: 'POST',
-                headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                body: formData
-            });
-
-            const data = await response.json();
-
-            showFlash(data.message, data.status);
-            if (data.status === 'success') {
-                form.reset();
-            }
-        } catch (err) {
-            showFlash('Something went wrong. Please try again.', 'danger');
-        } finally {
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
-        }
-    });
-}
 
 
 /* ── Scroll Animations ─────────────────────────────────────────────── */

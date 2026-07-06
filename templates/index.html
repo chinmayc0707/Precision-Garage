@@ -185,22 +185,4 @@
 </section>
 {% endif %}
 
-<!-- ── Newsletter ──────────────────────────────────────────────────── -->
-<div class="m-stripe"><span></span><span></span><span></span></div>
-<section class="newsletter-band section" id="newsletter">
-    <div class="container">
-        <div class="fade-up" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:40px;">
-            <div>
-                <p class="label-uppercase" style="color:var(--muted);">Stay Updated</p>
-                <h2 class="display-md mt-sm">SUBSCRIBE TO OUR NEWSLETTER</h2>
-                <p class="body-md mt-md" style="max-width:400px;">Get service reminders, exclusive offers, and automotive insights delivered to your inbox.</p>
-            </div>
-            <form class="newsletter-form" id="newsletter-form" method="POST" action="{{ url_for('subscribe_newsletter') }}">
-                {{ newsletter_form.hidden_tag() }}
-                <input type="email" name="email" class="form-input" placeholder="Enter your email" required>
-                <button type="submit" class="btn btn-filled">SUBSCRIBE</button>
-            </form>
-        </div>
-    </div>
-</section>
 {% endblock %}

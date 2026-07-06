@@ -148,12 +148,3 @@ class Feedback(db.Model):
 
 
 
-class Newsletter(db.Model):
-    __tablename__ = "newsletters"
-
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    subscribed_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    def __repr__(self):
-        return f"<Newsletter {self.email}>"

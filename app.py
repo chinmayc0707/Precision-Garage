@@ -3,10 +3,10 @@ from flask import Flask, render_template, redirect, url_for, flash, request, jso
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_wtf.csrf import generate_csrf
 from config import Config
-from models import db, User, Vehicle, Service, Complaint, Booking, Feedback, Newsletter
+from models import db, User, Vehicle, Service, Complaint, Booking, Feedback
 from forms import (
     LoginForm, RegisterForm, VehicleForm, BookingForm,
-    ComplaintForm, GeneralComplaintForm, FeedbackForm, NewsletterForm, UpdateKmsForm,
+    ComplaintForm, GeneralComplaintForm, FeedbackForm, UpdateKmsForm,
     CompleteServiceForm, CancelBookingForm
 )
 
@@ -85,7 +85,6 @@ def index():
     total_users = User.query.count()
     avg_rating = db.session.query(db.func.avg(Feedback.rating)).scalar() or 0
     total_feedbacks = Feedback.query.count()
-    newsletter_form = NewsletterForm()
     return render_template(
         "index.html",
         feedbacks=feedbacks,
@@ -93,7 +92,6 @@ def index():
         total_users=total_users,
         avg_rating=round(avg_rating, 1),
         total_feedbacks=total_feedbacks,
-        newsletter_form=newsletter_form,
     )
 
 
@@ -584,30 +582,6 @@ def feedback():
     return render_template("feedback.html", form=form)
 
 
-# ── Newsletter ───────────────────────────────────────────────────────
-@app.route("/newsletter", methods=["POST"])
-def subscribe_newsletter():
-    form = NewsletterForm()
-    if form.validate_on_submit():
-        if Newsletter.query.filter_by(email=form.email.data).first():
-            if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-                return jsonify({"status": "info", "message": "You're already subscribed!"})
-            flash("You're already subscribed!", "info")
-            return redirect(url_for("index"))
-
-        sub = Newsletter(email=form.email.data)
-        db.session.add(sub)
-        db.session.commit()
-
-        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-            return jsonify({"status": "success", "message": "Successfully subscribed!"})
-        flash("Successfully subscribed to our newsletter!", "success")
-    else:
-        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-            return jsonify({"status": "error", "message": "Please enter a valid email."})
-        flash("Please enter a valid email.", "danger")
-
-    return redirect(url_for("index"))
 
 
 # ── Mechanic / Service Man Routes ────────────────────────────────────
