@@ -506,9 +506,9 @@ ul, ol {
 .hero {
     position: relative;
     width: 100%;
-    height: 85vh;
-    min-height: 500px;
-    max-height: 900px;
+    height: 65vh;
+    min-height: 400px;
+    max-height: 700px;
     overflow: hidden;
     margin-top: 64px;
 }
@@ -552,7 +552,7 @@ ul, ol {
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-    padding: var(--sp-xxl);
+    padding: var(--sp-xl);
 }
 
 .hero-content {
@@ -565,14 +565,14 @@ ul, ol {
 }
 
 .hero-content h1 {
-    margin-bottom: var(--sp-lg);
+    margin-bottom: var(--sp-md);
 }
 
 .hero-content p {
     color: var(--body-strong);
     font-size: 18px;
     font-weight: 300;
-    margin-bottom: var(--sp-xl);
+    margin-bottom: var(--sp-lg);
     max-width: 600px;
 }
 
@@ -1492,16 +1492,16 @@ ul, ol {
     }
 
     .hero {
-        height: 75vh;
-        min-height: 450px;
+        height: 55vh;
+        min-height: 350px;
     }
 
     .hero-overlay {
-        padding: var(--sp-xl) var(--sp-lg);
+        padding: var(--sp-lg) var(--sp-md);
     }
 
     .hero-content {
-        margin-bottom: var(--sp-xl);
+        margin-bottom: var(--sp-lg);
     }
 
     .hero-prev {
