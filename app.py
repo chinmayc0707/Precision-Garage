@@ -145,11 +145,6 @@ def services():
             "icon": "📊",
         },
         {
-            "name": "AC Service & Repair",
-            "desc": "Climate system inspection, gas recharge, and repair.",
-            "icon": "❄️",
-        },
-        {
             "name": "Body Repair & Paint",
             "desc": "Dent removal, panel beating, and professional re-painting.",
             "icon": "🎨",
