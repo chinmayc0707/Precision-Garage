@@ -1,13 +1,20 @@
 from datetime import datetime, date
 from flask import Flask, render_template, redirect, url_for, flash, request, jsonify
+
+import random
+import string
+from datetime import timedelta
+from flask import session
+
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_wtf.csrf import generate_csrf
 from config import Config
-from models import db, User, Vehicle, Service, Complaint, Booking, Feedback
+from models import db, User, Vehicle, Service, Complaint, Booking, Feedback, PasswordResetOTP
 from forms import (
     LoginForm, RegisterForm, VehicleForm, BookingForm,
     ComplaintForm, GeneralComplaintForm, FeedbackForm, UpdateKmsForm,
-    CompleteServiceForm, CancelBookingForm
+    CompleteServiceForm, CancelBookingForm,
+    ForgotPasswordForm, VerifyOTPForm, ResetPasswordForm
 )
 
 app = Flask(__name__)
@@ -765,6 +772,108 @@ def reject_mechanic(user_id):
     db.session.commit()
     flash(f"Registration request from {name} has been rejected.", "info")
     return redirect(url_for("verify_requests"))
+
+
+
+# ── Password Reset ───────────────────────────────────────────────────
+
+def send_otp_email(user_email, otp):
+    # In a real application, you would configure SMTP here.
+    # For now, we will just print it to the console.
+    print(f"\n{'='*40}\nEMAIL SENT TO: {user_email}\nSUBJECT: Your Password Reset OTP\nBODY: Your OTP is {otp}. It will expire in 10 minutes.\n{'='*40}\n")
+
+@app.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    if current_user.is_authenticated:
+        return redirect(url_for("dashboard"))
+
+    form = ForgotPasswordForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user:
+            # Generate a 6-digit OTP
+            otp = ''.join(random.choices(string.digits, k=6))
+
+            # Save to DB
+            reset_otp = PasswordResetOTP(
+                user_id=user.id,
+                otp=otp,
+                expires_at=datetime.utcnow() + timedelta(minutes=10)
+            )
+            db.session.add(reset_otp)
+            db.session.commit()
+
+            # Send email
+            send_otp_email(user.email, otp)
+
+            # Store user_id in session for the next steps
+            session['reset_user_id'] = user.id
+
+            flash("An OTP has been sent to your email address.", "info")
+            return redirect(url_for("verify_otp"))
+        else:
+            flash("If an account with that email exists, an OTP will be sent.", "info")
+
+    return render_template("forgot_password.html", form=form)
+
+
+@app.route("/verify-otp", methods=["GET", "POST"])
+def verify_otp():
+    if current_user.is_authenticated:
+        return redirect(url_for("dashboard"))
+
+    if 'reset_user_id' not in session:
+        flash("Please start the password reset process from here.", "warning")
+        return redirect(url_for("forgot_password"))
+
+    form = VerifyOTPForm()
+    if form.validate_on_submit():
+        user_id = session.get('reset_user_id')
+        otp_record = PasswordResetOTP.query.filter_by(
+            user_id=user_id,
+            otp=form.otp.data
+        ).order_by(PasswordResetOTP.created_at.desc()).first()
+
+        if otp_record and otp_record.is_valid():
+            # OTP is valid, proceed to reset password
+            session['otp_verified'] = True
+            flash("OTP verified successfully. You can now reset your password.", "success")
+            return redirect(url_for("reset_password"))
+        else:
+            flash("Invalid or expired OTP. Please try again.", "danger")
+
+    return render_template("verify_otp.html", form=form)
+
+
+@app.route("/reset-password", methods=["GET", "POST"])
+def reset_password():
+    if current_user.is_authenticated:
+        return redirect(url_for("dashboard"))
+
+    if 'reset_user_id' not in session or not session.get('otp_verified'):
+        flash("Please verify your OTP first.", "warning")
+        return redirect(url_for("verify_otp"))
+
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        user_id = session.get('reset_user_id')
+        user = User.query.get(user_id)
+
+        if user:
+            user.set_password(form.password.data)
+
+            # Delete old OTPs for this user to keep DB clean
+            PasswordResetOTP.query.filter_by(user_id=user.id).delete()
+            db.session.commit()
+
+            # Clear session
+            session.pop('reset_user_id', None)
+            session.pop('otp_verified', None)
+
+            flash("Your password has been successfully reset. You can now log in.", "success")
+            return redirect(url_for("login"))
+
+    return render_template("reset_password.html", form=form)
 
 
 # ── App Init ─────────────────────────────────────────────────────────

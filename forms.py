@@ -91,3 +91,16 @@ class CancelBookingForm(FlaskForm):
     cancellation_reason = TextAreaField("Reason for Cancellation", validators=[DataRequired(), Length(min=5, max=1000)])
 
 
+
+class ForgotPasswordForm(FlaskForm):
+    email = StringField("Email", validators=[DataRequired(), Email()])
+
+class VerifyOTPForm(FlaskForm):
+    otp = StringField("OTP", validators=[DataRequired(), Length(min=6, max=6)])
+
+class ResetPasswordForm(FlaskForm):
+    password = PasswordField("New Password", validators=[DataRequired(), Length(min=6)])
+    confirm_password = PasswordField(
+        "Confirm Password",
+        validators=[DataRequired(), EqualTo("password", message="Passwords must match")]
+    )
