@@ -24,3 +24,8 @@ class Config:
     BASE_VEHICLES_SERVICED = int(os.environ.get("BASE_VEHICLES_SERVICED", 1250))
     BASE_HAPPY_CLIENTS = int(os.environ.get("BASE_HAPPY_CLIENTS", 340))
     YEARS_EXPERIENCE = int(os.environ.get("YEARS_EXPERIENCE", 8))
+    try:
+        UPCOMING_BOOKINGS_LIMIT = int(os.environ.get("UPCOMING_BOOKINGS_LIMIT", 5))
+    except (ValueError, TypeError):
+        UPCOMING_BOOKINGS_LIMIT = 5
+

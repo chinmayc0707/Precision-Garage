@@ -246,10 +246,28 @@ def dashboard():
     if current_user.role == "mechanic":
         return redirect(url_for("mechanic_dashboard"))
     vehicles = Vehicle.query.filter_by(user_id=current_user.id).all()
-    bookings = Booking.query.join(Vehicle).filter(
+    
+    # Paginate upcoming bookings
+    page = request.args.get('page', 1, type=int)
+    if page < 1:
+        page = 1
+    per_page = app.config.get("UPCOMING_BOOKINGS_LIMIT", 5)
+    
+    bookings_query = Booking.query.join(Vehicle).filter(
         Vehicle.user_id == current_user.id,
         Booking.status.in_(["pending", "confirmed", "cancelled"]),
-    ).order_by(Booking.preferred_date.asc()).all()
+    )
+    
+    total_bookings = bookings_query.count()
+    import math
+    total_pages = math.ceil(total_bookings / per_page) if total_bookings > 0 else 1
+    if page > total_pages:
+        page = total_pages
+        
+    bookings = bookings_query.order_by(Booking.preferred_date.asc())\
+                             .offset((page - 1) * per_page)\
+                             .limit(per_page)\
+                             .all()
 
     # Gather service reminders
     reminders = []
@@ -290,6 +308,9 @@ def dashboard():
         service_history=service_history,
         vehicle_form=vehicle_form,
         update_kms_form=update_kms_form,
+        page=page,
+        total_pages=total_pages,
+        total_bookings=total_bookings,
     )
 
 
