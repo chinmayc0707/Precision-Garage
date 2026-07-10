@@ -48,6 +48,7 @@ class BookingForm(FlaskForm):
             ("ac_service", "AC Service & Repair"),
             ("body_repair", "Body Repair & Paint"),
             ("general_checkup", "General Checkup"),
+            ("washing", "Car Washing"),
         ],
         validators=[DataRequired()]
     )
