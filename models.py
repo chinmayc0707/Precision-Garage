@@ -148,3 +148,20 @@ class Feedback(db.Model):
 
 
 
+
+class PasswordResetOTP(db.Model):
+    __tablename__ = "password_reset_otps"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    otp = db.Column(db.String(6), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    expires_at = db.Column(db.DateTime, nullable=False)
+
+    user = db.relationship("User", backref="otps")
+
+    def is_valid(self):
+        return datetime.utcnow() <= self.expires_at
+
+    def __repr__(self):
+        return f"<PasswordResetOTP for User {self.user_id}>"

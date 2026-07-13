@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Verify OTP{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="form-card">
+        <div class="auth-header">
+            <div class="m-stripe m-stripe-accent" style="margin:0 auto var(--sp-lg);"><span></span><span></span><span></span></div>
+            <h1 class="display-md">VERIFY OTP</h1>
+            <p class="body-md mt-sm">Check your email for the 6-digit code.</p>
+        </div>
+
+        <form method="POST" action="{{ url_for('verify_otp') }}">
+            {{ form.hidden_tag() }}
+
+            <div class="form-group">
+                <label class="form-label" for="otp">Enter OTP</label>
+                <input type="text" name="otp" id="otp" class="form-input" placeholder="123456" maxlength="6" required>
+                {% for error in form.otp.errors %}
+                <p class="form-error">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <button type="submit" class="btn btn-filled w-full">VERIFY →</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
