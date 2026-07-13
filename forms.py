@@ -45,7 +45,6 @@ class BookingForm(FlaskForm):
             ("brake_service", "Brake Service"),
             ("tire_rotation", "Tire Rotation & Alignment"),
             ("engine_diagnostic", "Engine Diagnostic"),
-            ("ac_service", "AC Service & Repair"),
             ("body_repair", "Body Repair & Paint"),
             ("general_checkup", "General Checkup"),
             ("washing", "Car Washing"),
