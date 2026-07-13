@@ -371,28 +371,30 @@ def book_service():
         return redirect(url_for("dashboard"))
 
     if form.validate_on_submit():
-        if not Booking.is_date_available(form.preferred_date.data, Config.MAX_VEHICLES_PER_DAY):
+        # Use atomic booking creation to prevent race condition
+        booking, success, error_msg = Booking.create_booking_safe(
+            vehicle_id=form.vehicle_id.data,
+            preferred_date=form.preferred_date.data,
+            service_type=form.service_type.data,
+            notes=form.notes.data,
+            max_vehicles=Config.MAX_VEHICLES_PER_DAY
+        )
+        
+        if success:
+            flash(
+                f"Booking confirmed for {form.preferred_date.data.strftime('%B %d, %Y')}! "
+                f"Drop off at {Config.GARAGE_OPEN_TIME} AM, collect at {Config.GARAGE_CLOSE_TIME} PM.",
+                "success",
+            )
+            return redirect(url_for("dashboard"))
+        else:
+            # Date is fully booked or error occurred
             flash(
                 f"Sorry, {form.preferred_date.data.strftime('%B %d, %Y')} is fully booked "
                 f"(max {Config.MAX_VEHICLES_PER_DAY} vehicles/day). Please choose another date.",
                 "warning",
             )
             return render_template("book.html", form=form)
-
-        booking = Booking(
-            vehicle_id=form.vehicle_id.data,
-            preferred_date=form.preferred_date.data,
-            service_type=form.service_type.data,
-            notes=form.notes.data,
-        )
-        db.session.add(booking)
-        db.session.commit()
-        flash(
-            f"Booking confirmed for {form.preferred_date.data.strftime('%B %d, %Y')}! "
-            f"Drop off at {Config.GARAGE_OPEN_TIME} AM, collect at {Config.GARAGE_CLOSE_TIME.replace('18', '6')} PM.",
-            "success",
-        )
-        return redirect(url_for("dashboard"))
 
     # Get unavailable dates for the calendar
     return render_template("book.html", form=form)
